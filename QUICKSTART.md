@@ -380,8 +380,43 @@ Three things to check, in this order:
 
 ## Before you load real case files
 
+> ## ⚠️ What this guide installs is the **development profile**
+>
+> Everything above builds the system on **Q4_K_M quantisation with 8 GB of
+> VRAM**. That is the configuration every published measurement was taken on —
+> and it is **the configuration this project's own compliance documents do not
+> approve for real case files.**
+>
+> | | Quantisation | VRAM | Approved for |
+> |---|---|---|---|
+> | **Development** — what this guide installs | Q4_K_M | 8 GB | **synthetic corpus only** |
+> | **Production, minimum** | Q8_0 | 24 GB | real case files, after the gates |
+> | **Production, recommended** | FP16 | 48 GB | real case files |
+>
+> The reason is in the model card, not in our opinion: **quantised models show
+> reduced answer quality and greater susceptibility to hallucination.** The
+> citation cannot be fabricated at any quantisation — that property is structural
+> — but *which* sentence the model picks, and whether it should have answered at
+> all, both get worse. The measured 82% correct refusal already reflects that.
+>
+> Sources, so you can check rather than take our word:
+> [`docs/06-stos-ai.md`](docs/06-stos-ai.md) (profile table),
+> [`docs/09-compliance/rodo-dpia.md`](docs/09-compliance/rodo-dpia.md) (point 106),
+> [`SECURITY.md`](SECURITY.md) (known limitations).
+>
+> **This is not a reason to avoid the system.** It is a reason to know which
+> profile you are on. Evaluate on the development profile — it is exactly what
+> the setup above gives you, and it is honest about its own limits. Move to Q8_0
+> on hardware that can hold it before a real criminal case file goes in, and
+> re-run the quality gates there, because the numbers in this repository were
+> not measured on it.
+
 The system is local and verifies its citations. **These remain your firm's job,
 and no software will do them for you:**
+
+- [ ] **Decide which profile you are on** — see the warning above. This is the
+      first decision, not the last, because it determines whether the rest of
+      this list is even worth working through.
 
 - [ ] **Encrypt the drive.** The system protects the network path, not your disk.
 - [ ] **Take a backup and put it on a separate drive.** The *Kopie zapasowe*

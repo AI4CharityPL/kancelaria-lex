@@ -46,7 +46,50 @@ a prośba o zapłatę skierowana do schroniska.
   oraz obsługa braku pamięci przy pracy na procesorze.
 
 ### Poprawione
-- **`models/manifest.md` opisywał model, którego system nie używa.**
+- **Kod nie kompilował się na Pythonie 3.11, mimo deklaracji `>=3.11`.**
+  `panel/wyszukiwarka.py:516` miał backslash wewnątrz wyrażenia f-stringa —
+  konstrukcję dozwoloną dopiero od 3.12 (PEP 701). Lokalnie pracujemy na
+  3.13, więc było to niewidoczne aż do bramki CI, która zapaliła się na
+  czerwono przy obu pierwszych wypchnięciach. Przy publikacji na PyPI
+  skutek byłby gorszy niż czerwone CI: pip zainstalowałby paczkę na 3.11
+  zgodnie z deklaracją, a import wywaliłby się u kogoś obcego.
+  Podstawienie przeniesione do stałej modułowej `_ODSTEPY` — przy okazji
+  wzorzec kompiluje się raz, a nie przy każdym z dziesiątek tysięcy zdań.
+- **Sprzeczność między instrukcją a dokumentami zgodności.** QUICKSTART
+  prowadził prawnika krok po kroku do instalacji profilu Q4_K_M na 8 GB
+  VRAM, podczas gdy `docs/06-stos-ai.md`, `docs/09-compliance/rodo-dpia.md`
+  (pkt 106), `SECURITY.md` i wcześniejszy wpis w tym dzienniku zgodnie
+  określają ten profil jako **rozwojowy i niedopuszczony do akt
+  rzeczywistych**. Instrukcja i README niosą teraz tę informację wprost,
+  wraz z tabelą profili i odesłaniem do źródeł. Rozstrzygnięte na korzyść
+  dokumentów zgodności, bo nie istnieje pomiar na Q8_0, który
+  uzasadniałby odejście od nich.
+- **GitHub nie rozpoznawał licencji — raportował `NOASSERTION`.** Plik
+  `LICENSE` zawierał tekst MIT plus obszerny aneks o licencjach wag,
+  a wykrywanie licencji dopasowuje **cały plik**. Repozytorium wyglądało
+  więc dla każdego automatu na pozbawione licencji. `LICENSE` zawiera
+  teraz wyłącznie tekst MIT; aneks przeniesiony bez zmian merytorycznych
+  do nowego `NOTICE.md` i uzupełniony o podział na składniki produkcyjne
+  i nieużywane.
+- **Wersja w `pyproject.toml` rozjeżdżała się z dziennikiem zmian** —
+  0.1.0 wobec ogłoszonego tu 1.0.0. Ujednolicone na 1.0.0.
+
+### Dodane — gotowość paczki i higiena repozytorium
+- `NOTICE.md` — licencje składników zewnętrznych, z rozdzieleniem tego,
+  co system faktycznie uruchamia, od tego, co jest tylko dostępne.
+- `CONTRIBUTING.md` — zasada T-6 w odniesieniu do zgłoszeń i PR-ów,
+  oczekiwany wynik testów, wymóg zgodności z 3.11–3.13 oraz dwie
+  własności nienegocjowalne.
+- `pyproject.toml`: klasyfikatory, `[project.urls]`, licencja w postaci
+  SPDX (PEP 639, `setuptools>=77`).
+- **Blokada wysyłki na PyPI** — klasyfikator `Private :: Do Not Upload`.
+  Moduł najwyższego poziomu nazywa się `panel`, a `panel` na PyPI to
+  HoloViz Panel (wersja 1.9.3, sponsorowany m.in. przez Anacondę
+  i NumFOCUS). Wgranie paczki psułoby `import panel` w cudzych
+  środowiskach, cicho i zależnie od kolejności `sys.path`. Wersji raz
+  wgranej na PyPI nie da się podmienić. Blokada zdejmowana razem ze
+  zmianą nazwy modułu — nazwy `kancelaria-lex` i `kancelaria_lex` są
+  na PyPI wolne (sprawdzone 17.08.2026).
   Jako „model językowy" figurował Bielik-11B, odrzucony w ablacji
   14.08.2026, podczas gdy produkcja stoi na dwóch modelach wybieranych
   po języku dokumentu: `bielik-lex-map` (minitron-7B) i `llama-lex-map`

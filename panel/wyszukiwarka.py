@@ -130,6 +130,12 @@ which who whom whose what when where why how
 
 WZORZEC_TOKENU = re.compile(r"[0-9]+(?:[./][0-9]+)*|[a-ząćęłńóśźż]+", re.IGNORECASE)
 
+# Zwijanie białych znaków przy budowie wsadu dla modelu — patrz
+# `dla_modelu()`. Skompilowany na poziomie modułu, a nie w pętli po
+# zdaniach: przy dużej sprawie ta pętla przechodzi dziesiątki tysięcy
+# zdań przy każdym pytaniu.
+_ODSTEPY = re.compile(r"\s+")
+
 
 def tokenizuj(tekst: str, jezyk: str | None = None) -> list[str]:
     """Tokeny znaczące. Stopsłowa angielskie WYŁĄCZNIE przy `jezyk="en"`.
@@ -513,7 +519,14 @@ class WyborZdan:
                     linie.append("")
                 linie.append(f"=== DOKUMENT id={z.dokument_id} ({z.nazwa}) ===")
                 biezacy = z.dokument_id
-            linie.append(f"[{z.numer}] {re.sub(r'\s+', ' ', z.tekst).strip()}")
+            # Podstawienie stoi w osobnej zmiennej, a nie wewnątrz klamry
+            # f-stringa, bo backslash w części WYRAŻENIA jest dozwolony
+            # dopiero od Pythona 3.12 (PEP 701). Na 3.11 plik nie
+            # kompilował się wcale — a że pracujemy na 3.13, było to
+            # niewidoczne aż do bramki CI. Deklarujemy >=3.11, więc kod
+            # ma się na 3.11 kompilować.
+            zwiniete = _ODSTEPY.sub(" ", z.tekst).strip()
+            linie.append(f"[{z.numer}] {zwiniete}")
         return "\n".join(linie)
 
     def __len__(self) -> int:

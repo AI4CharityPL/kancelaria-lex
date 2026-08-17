@@ -19,37 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-═══════════════════════════════════════════════════════════════════════════
-
-LICENCJA KODU NIE JEST LICENCJĄ WAG MODELU
-
-Powyższa licencja MIT obejmuje WYŁĄCZNIE kod tego repozytorium. Nie mówi
-nic o modelach językowych, embedderach ani silnikach OCR, z którymi system
-współpracuje. Każdy z nich ma własną licencję i własne ograniczenia.
-
-Przypadek, który to unaocznia: Surya — kod na Apache 2.0, ale wagi na
-AI Pubs Open-RAIL-M, która ogranicza użycie komercyjne po przekroczeniu
-progu przychodu. Dla kancelarii komercyjnej wymagałoby to odrębnej licencji.
-Sama licencja repozytorium nie wystarcza do oceny.
-
-KAŻDA AKTUALIZACJA MODELU WYMAGA PONOWNEJ WERYFIKACJI LICENCJI WAG.
-
-Rejestr licencji, wersji i sum kontrolnych: models/manifest.md
-Procedura wniesienia modelu: docs/10-operacje/runbook-aktualizacje.md
-
-Składniki zewnętrzne i ich licencje na dzień 14.08.2026:
-
-  OpenContracts (kod bazowy forka)      MIT
-  Bielik-11B-v3.0-Instruct (wagi)       Apache 2.0
-  Bielik-minitron-7B-v3.0 (wagi)        Apache 2.0
-  Llama 3.1 8B Instruct (wagi)          Llama 3.1 Community License
-  multilingual-e5-base (wagi)           MIT
-  Tesseract 5.x + pol.traineddata       Apache 2.0
-  RapidOCR                              Apache 2.0
-
-⚠️ Llama 3.1 nie jest licencją w pełni otwartą — Llama 3.1 Community
-   License nakłada warunki (m.in. próg 700 mln użytkowników miesięcznie
-   i wymóg oznaczenia "Built with Llama"). Dla kancelarii jest to
-   praktycznie bez znaczenia, ale nie jest to Apache 2.0 i tak należy
-   to traktować przy przeglądzie.

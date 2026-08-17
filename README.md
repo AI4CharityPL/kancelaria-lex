@@ -113,6 +113,18 @@ Every answerable question has an identically-worded twin that the files
 system still falls short of its own targets, and four hypotheses we tested and
 had to throw away.
 
+> ### Which profile these numbers belong to
+>
+> They were measured on the **development profile** — Q4_K_M quantisation, 8 GB
+> of VRAM — which is what [QUICKSTART](QUICKSTART.md) installs and what most
+> people will run. **This project's own compliance documents do not approve that
+> profile for real case files**; they require Q8_0 or higher, which needs 24 GB.
+>
+> We are stating this in the same breath as the numbers rather than further down,
+> because a figure quoted without its profile is the kind of half-truth this
+> whole project exists to avoid. Details:
+> [before you load real case files](QUICKSTART.md#before-you-load-real-case-files).
+
 ## Fully local — enforced, not promised
 
 Nothing leaves the machine. Not case text, not fragments, not queries, not

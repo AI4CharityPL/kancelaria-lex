@@ -1,15 +1,59 @@
 [build-system]
-requires = ["setuptools>=68"]
+# setuptools>=77 jest wymagane przez `license = "MIT"` w postaci SPDX
+# (PEP 639). Starsze wersje przyjmowały wyłącznie tabelę `{ file = ... }`,
+# którą PEP 639 uznaje za przestarzałą.
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "kancelaria-lex"
-version = "0.1.0"
-description = "Lokalny system agentowy do analizy akt dla kancelarii prawnej"
+# ⚠️ WERSJA MA ZGADZAĆ SIĘ Z CHANGELOG.md. Do 17.08.2026 stało tu 0.1.0,
+# podczas gdy dziennik zmian ogłaszał [1.0.0] jako pierwsze wydanie
+# publiczne. Przy publikacji na PyPI to nie jest kosmetyka: numer wersji
+# jest niezmienny po wgraniu, a rozjazd z dziennikiem zmian sprawia, że
+# nie da się powiedzieć, co właściwie zostało wydane.
+version = "1.0.0"
+description = "Lokalny system agentowy do analizy akt dla kancelarii prawnej — w pełni offline, cytat po numerze zdania"
 readme = "README.md"
 requires-python = ">=3.11"
-license = { file = "LICENSE" }
-keywords = ["prawo", "kancelaria", "rag", "lokalny-llm", "ollama"]
+license = "MIT"
+license-files = ["LICENSE"]
+keywords = ["prawo", "kancelaria", "rag", "lokalny-llm", "ollama", "legal-tech", "offline"]
+
+# ⚠️ AUTORZY — CELOWO NIEUZUPEŁNIENI. Do ustalenia przed publikacją paczki;
+# metadanych PyPI nie da się zmienić po wgraniu wersji.
+# authors = [{ name = "…", email = "…" }]
+
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Legal Industry",
+    "Natural Language :: Polish",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Office/Business",
+    "Topic :: Text Processing :: Linguistic",
+    "Private :: Do Not Upload",
+]
+
+# ⚠️ `Private :: Do Not Upload` JEST TU CELOWO I BLOKUJE WYSYŁKĘ NA PyPI.
+#
+# PyPI odrzuca każdą paczkę z tym klasyfikatorem. Blokada stoi, dopóki nie
+# rozstrzygnie się kolizja nazwy modułu opisana niżej przy `packages`:
+# wgranie paczki instalującej moduł najwyższego poziomu `panel` zepsułoby
+# środowiska tysiącom użytkowników biblioteki HoloViz Panel, a wersji raz
+# wgranej na PyPI nie da się podmienić — tylko wycofać, już po szkodzie.
+#
+# Usunąć dopiero razem ze zmianą nazwy modułu i uzupełnieniem autorów.
+
+[project.urls]
+Homepage = "https://github.com/AI4CharityPL/kancelaria-lex"
+Repository = "https://github.com/AI4CharityPL/kancelaria-lex"
+Issues = "https://github.com/AI4CharityPL/kancelaria-lex/issues"
+Changelog = "https://github.com/AI4CharityPL/kancelaria-lex/blob/main/CHANGELOG.md"
+"Setup guide" = "https://github.com/AI4CharityPL/kancelaria-lex/blob/main/QUICKSTART.md"
 
 # ══════════════════════════════════════════════════════════════════════
 #  ZERO ZALEŻNOŚCI RUNTIME — TO JEST WYMAGANIE, NIE NIEDOPATRZENIE.
@@ -44,6 +88,27 @@ kancelaria-lex = "panel.serwer:main"
 # Instalacja edytowalna (pip install -e .) jest wariantem docelowym:
 # panel czyta Modelfile'e, korpusy i src/aplikacje/ ścieżkami względem
 # katalogu repozytorium, więc pliki mają zostać tam, gdzie są.
+#
+# ══════════════════════════════════════════════════════════════════════
+#  ⚠️ NAZWA `panel` BLOKUJE PUBLIKACJĘ NA PyPI. ROZPOZNANE 17.08.2026.
+#
+#  `panel` na PyPI to HoloViz Panel — framework do aplikacji danych,
+#  sponsorowany m.in. przez Anacondę i NumFOCUS, wersja 1.9.3.
+#  Ta paczka instalowałaby moduł najwyższego poziomu o tej samej nazwie,
+#  więc w każdym środowisku, gdzie stoją obie, `import panel` trafiałby
+#  w zależności od kolejności na sys.path. Awaria byłaby cicha i zdarzałaby
+#  się u kogoś obcego, kto o naszym projekcie nie wie nic.
+#
+#  Do publikacji paczki trzeba dodatkowo rozstrzygnąć drugą rzecz:
+#  moduły w `panel/` importują się nawzajem płasko (`import baza`),
+#  co działa dzięki `sys.path.insert` przy starcie. Po instalacji z koła
+#  ścieżka `KORZEN.parent / "src" / "aplikacje"` nie istnieje — tego
+#  katalogu w paczce nie ma.
+#
+#  Uruchomienie z klonu repozytorium (tak opisuje to QUICKSTART.md)
+#  działa poprawnie i nie jest tym objęte. Blokada dotyczy wyłącznie
+#  drogi przez `pip install kancelaria-lex`.
+# ══════════════════════════════════════════════════════════════════════
 packages = ["panel"]
 
 [tool.setuptools.package-data]
