@@ -18,7 +18,7 @@ from pathlib import Path
 
 import pytest
 
-from conftest import KORZEN, COMPOSE, PAKIETY_ZAKAZANE
+from conftest import KORZEN, COMPOSE, PAKIETY_ZAKAZANE, wolno_pominac
 
 ZRODLA = KORZEN / "src" / "opencontracts"
 
@@ -33,13 +33,27 @@ def _pliki_zaleznosci() -> list[Path]:
 
 
 def _wymagaj_zrodel():
-    if not ZRODLA.exists():
-        pytest.fail(
-            f"\nBrak forka w {ZRODLA}.\n"
-            "Bramka I-1 nie mogła zostać sprawdzona — to NIE jest wynik\n"
-            "pozytywny. Wykonaj krok 3 z docs/10-operacje/runbook-wdrozenie.md.",
-            pytrace=False,
+    if ZRODLA.exists():
+        return
+
+    # Fork jest klonowany, nie wersjonowany (patrz .gitignore), więc na
+    # maszynie budującej z samego repozytorium go nie ma. Pominięcie jest
+    # dopuszczalne WYŁĄCZNIE na wyraźne żądanie i widać je w podsumowaniu
+    # jako `skipped` — nigdy jako `passed`.
+    if wolno_pominac():
+        pytest.skip(
+            f"Brak forka w {ZRODLA} — bramka NIE została sprawdzona. "
+            "Pominięcie świadome (--dozwol-pominiecie). Warstwa A izolacji "
+            "pozostaje niezweryfikowana w tym przebiegu."
         )
+
+    pytest.fail(
+        f"\nBrak forka w {ZRODLA}.\n"
+        "Bramka I-1 nie mogła zostać sprawdzona — to NIE jest wynik\n"
+        "pozytywny. Wykonaj krok 3 z docs/10-operacje/runbook-wdrozenie.md.\n"
+        "Świadome pominięcie: pytest --dozwol-pominiecie",
+        pytrace=False,
+    )
 
 
 @pytest.mark.parametrize("pakiet", PAKIETY_ZAKAZANE)

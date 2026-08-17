@@ -19,6 +19,41 @@ import pytest
 KORZEN = Path(__file__).resolve().parents[2]
 COMPOSE = KORZEN / "infra" / "compose" / "compose.yml"
 
+
+# ══════════════════════════════════════════════════════════════════════
+#  ŚWIADOME POMINIĘCIE — DOSTĘP DLA FUNKCJI POMOCNICZYCH, 17.08.2026.
+#
+#  `--dozwol-pominiecie` dało się dotąd odczytać wyłącznie tam, gdzie
+#  jest `request` (patrz test_warunki_wstepne.py). Bramki I-1…I-3 pytają
+#  o obecność forka ze zwykłej funkcji, więc flagi nie widziały i przy
+#  braku forka kończyły się BŁĘDEM ZAWSZE.
+#
+#  Na maszynie docelowej to jest zachowanie prawidłowe i zostaje: fork
+#  ma tam być, a jego brak nie może uchodzić za wynik pozytywny. Ale
+#  `src/opencontracts/` jest z założenia poza repozytorium (klonowany,
+#  nie wersjonowany), więc w CI te bramki nie mogły być zielone NIGDY.
+#  Bramka, która nie może przejść, przestaje nieść informację — ludzie
+#  uczą się ignorować jej czerwień, a razem z nią wszystkie pozostałe.
+#
+#  Rozwiązanie zachowuje zasadę: BEZ flagi nadal błąd, z flagą —
+#  pominięcie widoczne w podsumowaniu przebiegu jako `skipped`, nigdy
+#  jako `passed`. Domyślnie zamknięte: gdy konfiguracji nie da się
+#  odczytać, zwracamy False, czyli bramka pozostaje wymagająca.
+# ══════════════════════════════════════════════════════════════════════
+_KONFIGURACJA: pytest.Config | None = None
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    global _KONFIGURACJA
+    _KONFIGURACJA = config
+
+
+def wolno_pominac() -> bool:
+    """Czy operator świadomie zgodził się na pominięcie bramki."""
+    if _KONFIGURACJA is None:
+        return False
+    return bool(_KONFIGURACJA.getoption("--dozwol-pominiecie", default=False))
+
 # Kontenery, które muszą być odcięte od świata zewnętrznego.
 # traefik i frontend są w net_edge — obsługują LAN kancelarii,
 # więc nie podlegają testom egresu w ten sam sposób.

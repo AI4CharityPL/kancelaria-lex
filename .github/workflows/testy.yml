@@ -38,7 +38,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
 
@@ -116,21 +116,28 @@ jobs:
       #
       # Wzorzec w .gitignore jest tani do rozszerzenia i drogi do wycofania:
       # brak pliku nie rzuca się w oczy, w przeciwieństwie do pliku zbędnego.
+      # ⚠️ Bez `[ … ] && zmienna=…` w treści kroku. GitHub uruchamia go
+      #    przez `bash -e`, więc fałszywy warunek na końcu iteracji kończy
+      #    cały krok kodem 1 — bramka „padała" nie dlatego, że coś znalazła,
+      #    tylko dlatego, że NIC nie znalazła. Pierwsze uruchomienie tej
+      #    bramki właśnie tak się skończyło.
       - name: Żaden kod nie jest wykluczony przez .gitignore
         run: |
           echo "Sprawdzam, czy .gitignore nie wycina kodu…"
-          wyciete=""
+          : > /tmp/wyciete.txt
           for katalog in panel src/aplikacje eval/benchmark skrypty tests; do
-            [ -d "$katalog" ] || continue
-            znalezione=$(find "$katalog" -type f \( -name '*.py' -o -name '*.yaml' -o -name '*.yml' \) \
-              -not -path '*/__pycache__/*' -print 2>/dev/null | while read -r p; do
-                git check-ignore -q "$p" && echo "$p"
-              done)
-            [ -n "$znalezione" ] && wyciete="${wyciete}${znalezione}\n"
+            if [ -d "$katalog" ]; then
+              find "$katalog" -type f \
+                \( -name '*.py' -o -name '*.yaml' -o -name '*.yml' \) \
+                -not -path '*/__pycache__/*' -print \
+              | while read -r p; do
+                  if git check-ignore -q "$p"; then echo "$p" >> /tmp/wyciete.txt; fi
+                done
+            fi
           done
-          if [ -n "$wyciete" ]; then
+          if [ -s /tmp/wyciete.txt ]; then
             echo "::error::.gitignore wyklucza pliki kodu — repozytorium jest niekompletne:"
-            printf "%b" "$wyciete"
+            sed 's/^/  /' /tmp/wyciete.txt
             exit 1
           fi
           echo "OK — żaden plik kodu nie jest wykluczony."
