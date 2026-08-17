@@ -7,8 +7,21 @@
 # Dane spraw — bezwzględnie poza repozytorium
 dane/
 akta/
-sprawy/
 *.akta
+
+# ⚠️ ZAKOTWICZONE DO KORZENIA — POPRAWIONE 17.08.2026.
+#
+# Stało tu `sprawy/` bez ukośnika wiodącego, czyli wzorzec pasujący do
+# katalogu o tej nazwie NA KAŻDYM POZIOMIE. Blokował więc nie tylko dane
+# spraw, ale też `src/aplikacje/sprawy/` — czyli KOD: silnik kalkulatora
+# terminów procesowych wraz z regułami. Funkcja opisana w README jako
+# jedna z głównych nie trafiła do pierwszego wydania publicznego wcale.
+#
+# Wykryła to bramka CI (`ModuleNotFoundError: No module named 'sprawy'`),
+# a nie kontrola przed publikacją — bo tamta sprawdzała wyłącznie, czy nie
+# wyjechało nic zakazanego, i nie sprawdzała, czy wjechało wszystko
+# potrzebne. Kontrola jednokierunkowa nie wykrywa braków.
+/sprawy/
 
 # ⚠️ Raport wejściowy — dokument PRYWATNY, przygotowany dla konkretnej
 # osoby i podpisany jej imieniem. Nie niesie niczego, czego nie ma

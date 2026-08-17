@@ -46,6 +46,21 @@ a prośba o zapłatę skierowana do schroniska.
   oraz obsługa braku pamięci przy pracy na procesorze.
 
 ### Poprawione
+- **Pierwsze wydanie publiczne nie zawierało silnika terminów procesowych.**
+  Wzorzec `sprawy/` w `.gitignore` — pomyślany jako blokada danych spraw —
+  nie miał ukośnika wiodącego, więc pasował do katalogu o tej nazwie
+  **na każdym poziomie** i wycinał `src/aplikacje/sprawy/`, czyli
+  `silnik_terminow.py` wraz z `reguly_terminow.yaml`. README opisuje
+  kalkulator terminów jako jedną z głównych funkcji; w repozytorium go
+  nie było. Wzorzec zakotwiczony do korzenia (`/sprawy/`), pliki dodane.
+
+  Wykryła to bramka CI (`ModuleNotFoundError: No module named 'sprawy'`),
+  a nie kontrola przed publikacją — bo tamta sprawdzała wyłącznie, czy
+  **nie wyjechało nic zakazanego**, i nie sprawdzała, czy **wjechało
+  wszystko potrzebne**. Kontrola jednokierunkowa nie wykrywa braków.
+  Dodana bramka w drugą stronę: „żaden kod nie jest wykluczony przez
+  `.gitignore`" — sprawdza `panel/`, `src/aplikacje/`, `eval/benchmark/`,
+  `skrypty/` i `tests/` przy każdym wniesieniu.
 - **Kod nie kompilował się na Pythonie 3.11, mimo deklaracji `>=3.11`.**
   `panel/wyszukiwarka.py:516` miał backslash wewnątrz wyrażenia f-stringa —
   konstrukcję dozwoloną dopiero od 3.12 (PEP 701). Lokalnie pracujemy na

@@ -1,0 +1,106 @@
+# ⚠️ SZKIC DO ZATWIERDZENIA — NIE JEST ŹRÓDŁEM PRAWA
+#
+# Reguły są DANYMI, nie kodem — po to, żeby prawnik mógł je przejrzeć
+# bez czytania Pythona. To warunek, żeby ktokolwiek w kancelarii mógł
+# wziąć za nie odpowiedzialność (ADR-0005).
+#
+# KAŻDA reguła wymaga wypełnienia pól `zatwierdzil` i `data_zatwierdzenia`.
+# Reguła bez podpisu działa w trybie "tylko propozycja z ostrzeżeniem"
+# i NIE tworzy terminu wiążącego — pilnuje tego silnik_terminow.py.
+#
+# Podstawy prawne poniżej wymagają weryfikacji co do brzmienia i
+# aktualności. Katalog jest niepełny — do uzupełnienia w Fazie 5.
+#
+# Przegląd obowiązkowy przy każdej nowelizacji przepisów.
+
+reguly:
+
+  # ── postępowanie karne ──────────────────────────────────────────
+
+  - id: wniosek_o_uzasadnienie_karne
+    zdarzenie: ogloszenie_wyroku
+    dlugosc_dni: 7
+    liczenie: od_dnia_nastepnego
+    dni_wolne: przesun_na_nastepny_roboczy
+    podstawa: "art. 422 § 1 k.p.k."
+    zatwierdzil: null
+    data_zatwierdzenia: null
+    uwaga: >
+      DO WERYFIKACJI: termin na wniosek o sporządzenie uzasadnienia.
+      Sprawdzić brzmienie przepisu i wpływ ewentualnych nowelizacji.
+
+  - id: apelacja_karna
+    zdarzenie: doreczenie_wyroku_z_uzasadnieniem
+    dlugosc_dni: 14
+    liczenie: od_dnia_nastepnego
+    dni_wolne: przesun_na_nastepny_roboczy
+    podstawa: "art. 445 § 1 k.p.k."
+    zatwierdzil: null
+    data_zatwierdzenia: null
+    uwaga: >
+      DO WERYFIKACJI. Zdarzeniem inicjującym jest DORĘCZENIE, nie
+      ogłoszenie — model musi rozpoznać właściwe zdarzenie w piśmie.
+
+  - id: zazalenie_karne
+    zdarzenie: doreczenie_postanowienia
+    dlugosc_dni: 7
+    liczenie: od_dnia_nastepnego
+    dni_wolne: przesun_na_nastepny_roboczy
+    podstawa: "art. 460 k.p.k."
+    zatwierdzil: null
+    data_zatwierdzenia: null
+    uwaga: "DO WERYFIKACJI."
+
+  # ── postępowanie cywilne ────────────────────────────────────────
+
+  - id: wniosek_o_uzasadnienie_cywilne
+    zdarzenie: ogloszenie_wyroku
+    dlugosc_dni: 7
+    liczenie: od_dnia_nastepnego
+    dni_wolne: przesun_na_nastepny_roboczy
+    podstawa: "art. 328 § 1 k.p.c."
+    zatwierdzil: null
+    data_zatwierdzenia: null
+    uwaga: "DO WERYFIKACJI."
+
+  - id: apelacja_cywilna
+    zdarzenie: doreczenie_wyroku_z_uzasadnieniem
+    dlugosc_dni: 14
+    liczenie: od_dnia_nastepnego
+    dni_wolne: przesun_na_nastepny_roboczy
+    podstawa: "art. 369 § 1 k.p.c."
+    zatwierdzil: null
+    data_zatwierdzenia: null
+    uwaga: >
+      DO WERYFIKACJI. Uwaga na odrębne uregulowanie sytuacji, w której
+      strona nie złożyła wniosku o uzasadnienie.
+
+  - id: sprzeciw_od_nakazu_zaplaty
+    zdarzenie: doreczenie_nakazu_zaplaty
+    dlugosc_dni: 14
+    liczenie: od_dnia_nastepnego
+    dni_wolne: przesun_na_nastepny_roboczy
+    podstawa: "art. 502 § 1 k.p.c."
+    zatwierdzil: null
+    data_zatwierdzenia: null
+    uwaga: >
+      DO WERYFIKACJI. Sprawdzić odrębne terminy dla pozwanego
+      przebywającego za granicą.
+
+  - id: zazalenie_cywilne
+    zdarzenie: doreczenie_postanowienia
+    dlugosc_dni: 7
+    liczenie: od_dnia_nastepnego
+    dni_wolne: przesun_na_nastepny_roboczy
+    podstawa: "art. 394 § 2 k.p.c."
+    zatwierdzil: null
+    data_zatwierdzenia: null
+    uwaga: "DO WERYFIKACJI."
+
+# ── Wykaz świąt ruchomych ────────────────────────────────────────
+# Wymaga corocznej aktualizacji — Wielkanoc i Boże Ciało zmieniają daty.
+# Święta stałe są zaszyte w KalendarzDniWolnych.
+
+swieta_ruchome:
+  2026: []   # DO UZUPEŁNIENIA
+  2027: []   # DO UZUPEŁNIENIA

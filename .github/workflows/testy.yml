@@ -1,4 +1,4 @@
-# Bramka ciągłej integracji — testy, które da się wykonać BEZ modelu,
+﻿# Bramka ciągłej integracji — testy, które da się wykonać BEZ modelu,
 # bez Dockera i bez akt.
 #
 # ⚠️ CO TA BRAMKA ZIELONYM ŚWIATŁEM *NIE* POTWIERDZA.
@@ -36,7 +36,7 @@ jobs:
         python: ["3.11", "3.12", "3.13"]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: actions/setup-python@v5
         with:
@@ -78,7 +78,7 @@ jobs:
     # zasada sprawdzana przy każdym wniesieniu jest zabezpieczeniem.
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Baza danych, akta i sekrety poza repozytorium
         run: |
@@ -103,3 +103,34 @@ jobs:
             echo "::error::Repozytorium urosło do ${rozmiar_kb} kB — sprawdź, czy nie wszedł korpus."
             exit 1
           fi
+
+      # ⚠️ BRAMKA W DRUGĄ STRONĘ — DODANA 17.08.2026.
+      #
+      # Powyższe sprawdza, czy nie WYJECHAŁO nic zakazanego. Nie sprawdzało,
+      # czy WJECHAŁO wszystko potrzebne — a to jest osobne ryzyko i ono się
+      # zmaterializowało. Wzorzec `sprawy/` w .gitignore, pomyślany jako
+      # blokada danych spraw, pasował do katalogu o tej nazwie na każdym
+      # poziomie i wyciął `src/aplikacje/sprawy/`, czyli silnik terminów
+      # procesowych. Pierwsze wydanie publiczne nie zawierało funkcji
+      # opisanej w README jako jedna z głównych.
+      #
+      # Wzorzec w .gitignore jest tani do rozszerzenia i drogi do wycofania:
+      # brak pliku nie rzuca się w oczy, w przeciwieństwie do pliku zbędnego.
+      - name: Żaden kod nie jest wykluczony przez .gitignore
+        run: |
+          echo "Sprawdzam, czy .gitignore nie wycina kodu…"
+          wyciete=""
+          for katalog in panel src/aplikacje eval/benchmark skrypty tests; do
+            [ -d "$katalog" ] || continue
+            znalezione=$(find "$katalog" -type f \( -name '*.py' -o -name '*.yaml' -o -name '*.yml' \) \
+              -not -path '*/__pycache__/*' -print 2>/dev/null | while read -r p; do
+                git check-ignore -q "$p" && echo "$p"
+              done)
+            [ -n "$znalezione" ] && wyciete="${wyciete}${znalezione}\n"
+          done
+          if [ -n "$wyciete" ]; then
+            echo "::error::.gitignore wyklucza pliki kodu — repozytorium jest niekompletne:"
+            printf "%b" "$wyciete"
+            exit 1
+          fi
+          echo "OK — żaden plik kodu nie jest wykluczony."
