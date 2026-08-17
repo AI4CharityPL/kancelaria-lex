@@ -68,6 +68,11 @@ key. Nothing phones home.** The request above is a request, never a condition.
 
 # kancelaria-lex
 
+[![testy](https://github.com/AI4CharityPL/kancelaria-lex/actions/workflows/testy.yml/badge.svg)](https://github.com/AI4CharityPL/kancelaria-lex/actions/workflows/testy.yml)
+[![licencja MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue.svg)](pyproject.toml)
+[![bez zależności](https://img.shields.io/badge/runtime%20dependencies-none-brightgreen.svg)](pyproject.toml)
+
 **A fully local AI system for analysing legal case files — built for Polish
 lawyers, in Polish, for Polish legal reality.**
 
