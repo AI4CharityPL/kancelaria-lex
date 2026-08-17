@@ -1,0 +1,105 @@
+# Bramka ciągłej integracji — testy, które da się wykonać BEZ modelu,
+# bez Dockera i bez akt.
+#
+# ⚠️ CO TA BRAMKA ZIELONYM ŚWIATŁEM *NIE* POTWIERDZA.
+#
+# Zielone CI oznacza tutaj wyłącznie: logika, weryfikator cytatów,
+# wyróżniki, wyszukiwarka, profile i schematy zachowują się zgodnie
+# z testami jednostkowymi. NIE oznacza:
+#
+#   · że izolacja sieciowa działa      → tests/izolacja/, wymaga Dockera
+#   · że model odpowiada poprawnie     → -m behawioralny, wymaga Ollamy
+#   · że jakość mieści się w progach   → -m jakosc, wymaga przebiegu
+#                                         benchmarku na maszynie z GPU
+#
+# Te trzy grupy są wykonywane na maszynie docelowej i tam zapadają
+# decyzje wdrożeniowe. Zapisane wprost, bo bramka, o której ktoś myśli,
+# że sprawdza więcej niż sprawdza, jest gorsza od jej braku.
+
+name: testy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  jednostkowe:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Wersja Pythona
+        run: python --version
+
+      # Panel korzysta wyłącznie z biblioteki standardowej — to jest
+      # decyzja projektowa (art. 21 ust. 2 lit. d KSC, łańcuch dostaw),
+      # więc jedyną instalowaną zależnością jest sam pytest.
+      - name: Zależności
+        run: python -m pip install --upgrade pip pytest
+
+      - name: Testy jednostkowe
+        run: >
+          python -m pytest -q
+          -m "not izolacja and not behawioralny and not jakosc and not konfiguracja"
+          --ignore=tests/izolacja
+
+      # ⚠️ BRAMKI IZOLACJI, KTÓRE NIE POTRZEBUJĄ DOCKERA — DODANE 16.08.2026.
+      #
+      # Wcześniej `--ignore=tests/izolacja` wykluczał CAŁY katalog, w tym
+      # I-1, I-2, I-8, I-6, I-7, U-6 i U-8: bramki statyczne, które czytają
+      # pliki zależności i `compose.yml`, i wykonują się w kilka sekund.
+      # Bramka RY-03 („merge z upstreamem cicho przywraca SDK chmurowe")
+      # była więc zadeklarowana i nieuruchamiana — czyli nie chroniła przed
+      # niczym. Testy wymagające Dockera pomijają się tu same przez fixture.
+      - name: Bramki izolacji bez Dockera
+        run: >
+          python -m pytest -q tests/izolacja
+          --dozwol-pominiecie
+
+  higiena-danych:
+    # ⚠️ NAJWAŻNIEJSZA BRAMKA W TYM PLIKU.
+    #
+    # Zasada T-6 mówi, że rzeczywiste akta nigdy nie trafiają do
+    # repozytorium. Zasada zapisana w dokumencie jest życzeniem;
+    # zasada sprawdzana przy każdym wniesieniu jest zabezpieczeniem.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Baza danych, akta i sekrety poza repozytorium
+        run: |
+          echo "Szukam plików, których w repozytorium być nie może…"
+          znalezione=$(git ls-files | grep -E \
+            '\.(db|sqlite|sqlite3|pcap|pcapng|gguf|safetensors|pem|key|p12|pfx)$|^(dane|akta|sprawy)/|(^|/)\.env$' \
+            || true)
+          if [ -n "$znalezione" ]; then
+            echo "::error::Do repozytorium trafiły pliki objęte zakazem (T-6):"
+            echo "$znalezione"
+            exit 1
+          fi
+          echo "OK — nic zakazanego nie jest śledzone."
+
+      - name: Rozmiar repozytorium bez korpusów
+        run: |
+          rozmiar_kb=$(git ls-files -z | xargs -0 du -ck 2>/dev/null | tail -1 | cut -f1)
+          echo "Śledzone pliki: ${rozmiar_kb} kB"
+          # Korpusy pomiarowe (16 MB i 158 MB) są pobierane osobno.
+          # Skok powyżej 25 MB znaczy, że któryś wszedł do repozytorium.
+          if [ "$rozmiar_kb" -gt 25000 ]; then
+            echo "::error::Repozytorium urosło do ${rozmiar_kb} kB — sprawdź, czy nie wszedł korpus."
+            exit 1
+          fi

@@ -1,0 +1,135 @@
+diff --git a/opencontractserver/llms/model_factory.py b/opencontractserver/llms/model_factory.py
+index 63f76b8..c9676c8 100644
+--- a/opencontractserver/llms/model_factory.py
++++ b/opencontractserver/llms/model_factory.py
+@@ -184,6 +184,73 @@ async def aget_provider_credentials(provider_key: str) -> dict[str, str]:
+     return await sync_to_async(_get_db_credentials)(provider_key)
+ 
+ 
++# ═══════════════════════════════════════════════════════════════════════
++#  [kancelaria-lex] PATCH 03 — strażnik adresów modeli (warstwa B izolacji)
++# ═══════════════════════════════════════════════════════════════════════
++#
++# Kontekst (docs/05-izolacja-i-siec.md, ADR-0003):
++#
++#   U-1  Ollama jedzie przez OpenAIProvider, a kod SAM podstawia atrapę
++#        klucza "ollama" (linia ~257 tego pliku). Teza "bez klucza ścieżka
++#        jest niedostępna" jest fałszywa — kontrolować trzeba ADRES.
++#
++#   U-2  api_key i base_url mogą pochodzić z BAZY (PipelineSettings),
++#        z regułą "baza wygrywa nad zmienną środowiskową". Czysty .env
++#        niczego nie gwarantuje.
++#
++# Dlatego twarde zatrzymanie zamiast ostrzeżenia w logu: system, który
++# przy błędnej konfiguracji działa dalej i loguje ostrzeżenie, będzie
++# działał dalej — ostrzeżeń nikt nie czyta.
++
++LEX_DOSTAWCY_DOZWOLENI = frozenset({"openai", "ollama"})
++
++
++class LexBlednyAdresModelu(RuntimeError):
++    """Adres modelu spoza allowlisty. Zatrzymuje żądanie."""
++
++
++def _lex_allowlista() -> tuple[str, ...]:
++    import os
++
++    surowe = os.environ.get(
++        "LEX_DOZWOLONE_BASE_URL",
++        "http://ollama:11434/v1,http://embedder:8000",
++    )
++    return tuple(a.strip() for a in surowe.split(",") if a.strip())
++
++
++def _waliduj_base_url_lex(base_url: str | None, provider_key: str) -> None:
++    """Podnosi wyjątek, gdy adres nie należy do allowlisty.
++
++    Porównanie po (schemat, host, port) — nie po całym ciągu — żeby
++    końcowy ukośnik albo dopisana ścieżka nie omijały kontroli.
++    """
++    from urllib.parse import urlparse
++
++    if provider_key not in LEX_DOSTAWCY_DOZWOLENI:
++        raise LexBlednyAdresModelu(
++            f"Dostawca {provider_key!r} jest niedozwolony w tej instalacji. "
++            f"Dopuszczalni: {sorted(LEX_DOSTAWCY_DOZWOLENI)}. "
++            f"Patrz docs/05-izolacja-i-siec.md."
++        )
++
++    if base_url is None:
++        return
++
++    def klucz(u: str):
++        p = urlparse(u)
++        return (p.scheme, p.hostname, p.port)
++
++    dozwolone = _lex_allowlista()
++    if klucz(base_url) not in {klucz(a) for a in dozwolone}:
++        raise LexBlednyAdresModelu(
++            f"Adres modelu {base_url!r} jest spoza allowlisty. "
++            f"Dozwolone: {list(dozwolone)}. "
++            f"Zgłoszenie zostało odrzucone — treść akt nie opuści instalacji. "
++            f"Patrz ADR-0003."
++        )
++
++
+ def _construct_model(
+     provider_key: str,
+     model_name: str,
+@@ -205,6 +272,16 @@ def _construct_model(
+     api_key = creds.get("api_key")
+     base_url = creds.get("base_url")
+ 
++    # ── [kancelaria-lex] PATCH 03 — strażnik adresów (warstwa B) ──────
++    # Upstream zakłada tu "niski threat model, bo tylko superuser zapisuje
++    # to ustawienie". Dla akt spraw karnych to założenie nie wystarcza:
++    # konto superużytkownika bywa przejmowane, a ta jedna wartość decyduje
++    # o tym, dokąd wychodzi treść akt.
++    #
++    # Punktem kontroli jest ADRES, nie klucz — bo dla ollamy klucz i tak
++    # jest podstawiany niżej (ustalenie U-1, linia ~257).
++    _waliduj_base_url_lex(base_url, provider_key)
++
+     if base_url is not None:
+         # Only superusers can write this setting, so the threat model is low,
+         # but a malformed endpoint (missing scheme, a typo'd host) otherwise
+@@ -261,29 +338,16 @@ def _construct_model(
+             provider=OpenAIProvider(api_key=api_key, base_url=base_url),
+         )
+ 
+-    if provider_key == "anthropic":
+-        from pydantic_ai.models.anthropic import AnthropicModel
+-        from pydantic_ai.providers.anthropic import AnthropicProvider
+-
+-        return AnthropicModel(
+-            model_name,
+-            provider=AnthropicProvider(api_key=api_key, base_url=base_url),
+-        )
+-
+-    if provider_key == "google-gla":
+-        # Only the AI-Studio (``google-gla``) provider is registered and
+-        # authenticates with an API key. ``google-vertex`` uses
+-        # service-account ADC credentials, not an api_key — building a
+-        # ``GoogleProvider(api_key=...)`` for it would construct cleanly
+-        # but fail at request time. We therefore handle only ``google-gla``
+-        # here and let any future Vertex provider fall through to the
+-        # warning + ``None`` (env-fallback) below.
+-        from pydantic_ai.models.google import GoogleModel
+-        from pydantic_ai.providers.google import GoogleProvider
+-
+-        # AI-Studio takes no caller-supplied endpoint, so only the key flows
+-        # through (GoogleProvider has no base_url field on this path).
+-        return GoogleModel(model_name, provider=GoogleProvider(api_key=api_key))
++    # ── [kancelaria-lex] PATCH 03 — gałęzie `anthropic` i `google-gla`
++    #    USUNIĘTE, nie wyłączone.
++    #
++    #    Ich pakiety nie są instalowane (patch 01 zawęża ekstras
++    #    pydantic-ai-slim do `openai`), więc te importy i tak by padły.
++    #    Kod usunięto, żeby nie zostawiać ścieżki, którą wystarczy
++    #    odkomentować — a _waliduj_base_url_lex odrzuca te nazwy dostawców
++    #    wcześniej, zanim dojdzie do konstrukcji modelu.
++    #
++    #    Warstwa A izolacji: kod, którego nie ma, nie wykona połączenia.
+ 
+     # When adding a new provider under ``pipeline/llm_providers/``, add a
+     # matching branch above so DB-configured credentials are threaded through

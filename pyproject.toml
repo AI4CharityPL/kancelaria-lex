@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kancelaria-lex"
+version = "0.1.0"
+description = "Lokalny system agentowy do analizy akt dla kancelarii prawnej"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+keywords = ["prawo", "kancelaria", "rag", "lokalny-llm", "ollama"]
+
+# ══════════════════════════════════════════════════════════════════════
+#  ZERO ZALEŻNOŚCI RUNTIME — TO JEST WYMAGANIE, NIE NIEDOPATRZENIE.
+#
+#  Każdy pakiet w łańcuchu dostaw to pakiet, którego trzeba pilnować
+#  (art. 21 ust. 2 lit. d ustawy o KSC). Panel korzysta wyłącznie
+#  z biblioteki standardowej:
+#
+#    http.server      serwer panelu
+#    sqlite3          baza spraw
+#    hashlib.scrypt   hasła profili
+#    secrets          tokeny sesji
+#    http.cookies     ciasteczko sesji
+#    urllib.request   jedyne połączenie: lokalna Ollama
+#
+#  BM25, tokenizacja i rozpoznawanie języka są napisane od zera
+#  z tego samego powodu.
+#
+#  Dopisanie tu czegokolwiek wymaga świadomej decyzji i wpisu
+#  w docs/14-decyzje/. Bramka I-1 pilnuje, żeby nie wróciły SDK
+#  dostawców chmurowych.
+# ══════════════════════════════════════════════════════════════════════
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+kancelaria-lex = "panel.serwer:main"
+
+[tool.setuptools]
+# Instalacja edytowalna (pip install -e .) jest wariantem docelowym:
+# panel czyta Modelfile'e, korpusy i src/aplikacje/ ścieżkami względem
+# katalogu repozytorium, więc pliki mają zostać tam, gdzie są.
+packages = ["panel"]
+
+[tool.setuptools.package-data]
+panel = ["statyczne/*.html", "statyczne/*.css", "statyczne/*.js"]

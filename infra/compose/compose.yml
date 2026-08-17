@@ -1,0 +1,204 @@
+# kancelaria-lex — topologia z segmentacją sieci
+#
+# Warstwa C izolacji (patrz docs/05-izolacja-i-siec.md).
+# Upstream OpenContracts NIE definiuje żadnych sieci — wszystko ląduje
+# na domyślnym mostku, który ma trasę do internetu (ustalenie U-4).
+# Ten plik pisze topologię od zera.
+#
+# ZASADA: tylko net_edge jest osiągalny z LAN kancelarii.
+# Pozostałe segmenty mają internal: true — Docker nie tworzy dla nich
+# trasy do bramy, więc kontener nie wyjdzie na zewnątrz nawet przy
+# poprawnym DNS i poprawnej konfiguracji aplikacji.
+#
+# ⚠️ OBRAZY: wszystkie muszą być przypięte po sha256 przed produkcją
+#    (ustalenie U-5). Tagi poniżej to miejsca do uzupełnienia —
+#    bramka I-8 w tests/izolacja/ pilnuje, żeby nie zostały tagami.
+#    Sposób uzyskania digestu: skrypty/pobierz-digesty.sh
+
+name: kancelaria-lex
+
+# ─────────────────────────────────────────────────────────────────
+# SIECI
+# ─────────────────────────────────────────────────────────────────
+networks:
+  net_edge:
+    # Jedyny segment z dostępem z sieci kancelarii.
+    driver: bridge
+
+  net_app:
+    driver: bridge
+    internal: true          # ← brak trasy do bramy
+
+  net_ai:
+    driver: bridge
+    internal: true          # ← modele: ustalenie U-1
+
+  net_parse:
+    driver: bridge
+    internal: true          # ← parsery: zagrożenie I-2 (LibreOffice
+                            #   pobiera zasoby osadzone w plikach)
+
+volumes:
+  dane_postgres:
+  dane_minio:
+  dane_ollama:
+  dane_audyt:               # log audytowy — poza bazą aplikacji
+  certyfikaty:
+
+x-django-common: &django-common
+  build:
+    context: ../../src/opencontracts
+    dockerfile: compose/local/django/Dockerfile
+  env_file: [.env]
+  environment:
+    # Warstwa B izolacji — allowlista adresów.
+    # Strażnik startowy odrzuca wszystko spoza tej listy i NIE POZWALA
+    # procesowi wstać (patch 03-straznik-adresow).
+    LEX_DOZWOLONE_BASE_URL: "http://ollama:11434/v1,http://embedder:8000"
+    LEX_LLM_BASE_URL: "http://ollama:11434/v1"
+    LEX_LLM_MODEL: "bielik-lex-dev"
+    LEX_EMBEDDER_URL: "http://embedder:8000"
+    # Telemetria: pakiet posthog jest USUNIĘTY z builda (warstwa A).
+    # Ta zmienna to zabezpieczenie na wypadek, gdyby wrócił.
+    TELEMETRY_ENABLED: "False"
+  depends_on: [postgres, redis]
+  security_opt: ["no-new-privileges:true"]
+
+services:
+
+  # ── net_edge ────────────────────────────────────────────────────
+  traefik:
+    # Przypięte 16.08.2026 (bramka I-8, ustalenie U-5). Tag może wskazać
+    # inną treść po każdym `pull`; suma nie może. Odświeżenie sum:
+    # bash skrypty/pobierz-digesty.sh — wyłącznie w oknie serwisowym.
+    image: traefik@sha256:2cd5cc75530c8d07ae0587c743d23eb30cae2436d07017a5ff78498b1a43d09f  # v3.3
+    # ⚠️ ACME WYŁĄCZONE (ustalenie U-6). Upstream używa Let's Encrypt,
+    #    co z definicji wymaga połączenia wychodzącego. Certyfikaty
+    #    pochodzą z własnego CA — infra/ca/utworz-ca.sh
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--providers.file.directory=/etc/traefik/dynamic"
+      # BRAK --certificatesresolvers.*.acme.* — celowo.
+    ports: ["80:80", "443:443"]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - certyfikaty:/etc/traefik/certs:ro
+      - ../ca/traefik-dynamic:/etc/traefik/dynamic:ro
+    networks: [net_edge]
+    security_opt: ["no-new-privileges:true"]
+
+  frontend:
+    build:
+      context: ../../src/opencontracts/frontend
+    networks: [net_edge]
+    security_opt: ["no-new-privileges:true"]
+
+  # ── net_app ─────────────────────────────────────────────────────
+  django:
+    <<: *django-common
+    # Jedyny kontener spinający segmenty — punkt styku aplikacji,
+    # modeli i parserów.
+    networks: [net_edge, net_app, net_ai, net_parse]
+
+  celeryworker:
+    <<: *django-common
+    command: celery -A config.celery_app worker -l INFO
+    networks: [net_app, net_ai, net_parse]
+
+  celerybeat:
+    <<: *django-common
+    command: celery -A config.celery_app beat -l INFO
+    networks: [net_app]
+
+  flower:
+    <<: *django-common
+    command: celery -A config.celery_app flower
+    # ⚠️ BRAK sekcji ports (ustalenie U-8). Upstream wystawia 5555.
+    #    Nazwy zadań i ich argumenty ujawniają identyfikatory spraw,
+    #    a metadane też są objęte tajemnicą zawodową.
+    networks: [net_app]
+
+  postgres:
+    build:
+      context: ../../src/opencontracts
+      dockerfile: compose/production/postgres/Dockerfile
+    volumes: [dane_postgres:/var/lib/postgresql/data]
+    env_file: [.env]
+    networks: [net_app]
+    security_opt: ["no-new-privileges:true"]
+
+  redis:
+    image: redis@sha256:a873de27e877d8ea401f530a4c7571bae34882a7178a0a0f3df12263bfba14a5  # 6
+    networks: [net_app]
+    security_opt: ["no-new-privileges:true"]
+
+  minio:
+    image: minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
+    command: server /data
+    volumes: [dane_minio:/data]
+    env_file: [.env]
+    networks: [net_app]
+    security_opt: ["no-new-privileges:true"]
+
+  # ── net_ai ──────────────────────────────────────────────────────
+  ollama:
+    image: ollama/ollama@sha256:9d30908e41144b1f1da89b9d8e33c07e4aeb43ff41a8660241b1686e2cc330ad
+    volumes: [dane_ollama:/root/.ollama]
+    networks: [net_ai]
+    security_opt: ["no-new-privileges:true"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  embedder:
+    # multilingual-e5-base, 768 wymiarów (ADR-0004).
+    # Zamiast domyślnego all-MiniLM-L6-v2 (384 wym., korpus angielski).
+    build:
+      context: ../../src/aplikacje/embedder
+    environment:
+      MODEL_NAME: "intfloat/multilingual-e5-base"
+      MODEL_PATH: "/modele/e5-base"    # wagi z paczki offline
+    volumes: ["../../models/e5-base:/modele/e5-base:ro"]
+    networks: [net_ai]
+    security_opt: ["no-new-privileges:true"]
+
+  # ── net_parse ───────────────────────────────────────────────────
+  docling:
+    # ⚠️ Obraz z PRYWATNEJ przestrzeni rejestru — dokładnie ten przypadek,
+    # dla którego ustalenie U-5 powstało: treść tagu może się zmienić bez
+    # śladu w repozytorium, a ten kontener parsuje akta.
+    image: jscrudato/docsling-local@sha256:c35131594c257611131f9bcfd0af4b3adcf6064c96620ee67f42c3396acfd46b
+    environment:
+      OCR_ENGINE: "tesseract"
+      OCR_LANG: "pol"
+      OCR_FALLBACK: "rapidocr"
+    networks: [net_parse]
+    security_opt: ["no-new-privileges:true"]
+
+  gotenberg:
+    image: gotenberg/gotenberg@sha256:87c16b9f364279d321bc9772d31fa58aa6abe036423c270698bd636c3a8e9466  # 8
+    # ⚠️ NAJWAŻNIEJSZY POWÓD ISTNIENIA net_parse.
+    #    LibreOffice potrafi próbować pobrać zasoby osadzone
+    #    w konwertowanym pliku (linkowane obrazy, encje XML).
+    #    Pismo od strony przeciwnej z linkowanym obrazem stałoby się
+    #    potwierdzeniem odbioru pod kontrolowanym adresem (I-2).
+    #    Kontrola aplikacyjna jest tu zawodna — działa brak trasy.
+    networks: [net_parse]
+    security_opt: ["no-new-privileges:true"]
+
+  docxodus:
+    image: ghcr.io/open-source-legal/docxodus-service@sha256:553922e4e4bad23ac85f884961e4a7a23bd9d2db91a393e1fc9f70a5b276e6ba  # 1.1.0-docxodus5.4.2
+    networks: [net_parse]            # TODO: przypiąć po sha256
+    security_opt: ["no-new-privileges:true"]
+
+  privacy_filter:
+    image: ghcr.io/open-source-legal/privacy-filter@sha256:de0fb0d238c7b28753fb9f3e6243c58b419bb2ae4e51008f33ecf9d9b0b4d184
+    networks: [net_parse]
+    security_opt: ["no-new-privileges:true"]

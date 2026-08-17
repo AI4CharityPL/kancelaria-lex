@@ -1,0 +1,33 @@
+PROTOKÓŁ PRZESŁUCHANIA ŚWIADKA
+
+Sygnatura akt: II K 147/26
+Sąd Rejonowy w Nowym Mieście, II Wydział Karny
+Data przesłuchania: 12 sierpnia 2026 r.
+
+Dane świadka: Anna Nowak, zamieszkała w Nowym Mieście.
+
+Świadek pouczona o odpowiedzialności karnej za składanie fałszywych zeznań zeznała, co następuje:
+
+W dniu 3 marca 2026 roku wieczorem, około godziny 22:00, wyglądałam przez okno mieszkania przy ulicy Ogrodowej 14.
+
+Na ulicy stał samochód. Wydaje mi się, że był to pojazd koloru ciemnego, może granatowego. Nie znam się na markach samochodów.
+
+Przy samochodzie stało dwóch mężczyzn. Rozmawiali ze sobą podniesionym głosem, ale nie słyszałam treści rozmowy.
+
+Obserwowałam ich przez kilkanaście minut. Około godziny 22:15 samochód odjechał w kierunku centrum.
+
+Nie jestem w stanie opisać wyglądu tych mężczyzn.
+
+Na tym protokół zakończono i po odczytaniu podpisano.
+
+Protokołował: sekretarz sądowy
+
+
+UWAGA DLA TESTÓW (nie jest częścią dokumentu):
+Dokument celowo zawiera rozbieżności wobec protokołu 01 —
+godzina (21:30 vs 22:00), kolor pojazdu (srebrny vs ciemny/granatowy),
+liczba osób (jeden mężczyzna vs dwóch), czas obserwacji
+(dwie minuty vs kilkanaście minut).
+Materiał do testowania agenta rozbieżności A-5.
+Agent ma WSKAZAĆ rozbieżności z cytatami, a NIE rozstrzygać,
+która wersja jest prawdziwa, ani oceniać wiarygodności świadków.

@@ -1,0 +1,81 @@
+Generowanie przypadków…
+  sprawa 3 [pl]: 320 dok., 32 przypadków
+  sprawa 4 [en]: 402 dok., 32 przypadków
+  szczelność 3→4: 5
+  szczelność 4→3: 5
+  [  1/74] OK  fakt_zakotwiczony     13.5s  Co akta tej sprawy stwierdzają w odniesieniu do sygnatury 
+  [  2/74] OK  bez_pokrycia          32.1s  Co akta tej sprawy stwierdzają w odniesieniu do sygnatury 
+  [  3/74] OK  fakt_zakotwiczony     10.1s  Co akta tej sprawy stwierdzają w odniesieniu do sygnatury 
+  [  4/74] OK  bez_pokrycia           4.2s  Co akta tej sprawy stwierdzają w odniesieniu do sygnatury 
+  [  5/74] OK  fakt_zakotwiczony     36.0s  Czego dotyczy kwota 1.000,00 zł w aktach tej sprawy?
+  [  6/74] OK  pulapka_liczbowa       3.4s  Czego dotyczy kwota 1.004,05 zł w aktach tej sprawy?
+  [  7/74] BŁ  fakt_zakotwiczony     11.2s  Jakie zdarzenie akta tej sprawy wiążą z datą 16 lutego 202
+  [  8/74] OK  bez_pokrycia           4.7s  Jakie zdarzenie akta tej sprawy wiążą z datą 24 grudnia 20
+  [  9/74] BŁ  fakt_zakotwiczony     26.3s  Co akta tej sprawy stwierdzają w odniesieniu do sygnatury 
+  [ 10/74] OK  bez_pokrycia          18.7s  Co akta tej sprawy stwierdzają w odniesieniu do sygnatury 
+  [ 11/74] BŁ  fakt_zakotwiczony     13.7s  Jakie zdarzenie akta tej sprawy wiążą z datą 5 lutego 2025
+  [ 12/74] OK  bez_pokrycia          16.0s  Jakie zdarzenie akta tej sprawy wiążą z datą 23 kwietnia 2
+  [ 13/74] OK  fakt_zakotwiczony     11.2s  Jakie zdarzenie akta tej sprawy wiążą z datą 23 październi
+  [ 14/74] OK  bez_pokrycia          20.8s  Jakie zdarzenie akta tej sprawy wiążą z datą 10 grudnia 20
+  [ 15/74] OK  fakt_zakotwiczony      9.5s  Jakie zdarzenie akta tej sprawy wiążą z datą 23 lipca 1974
+  [ 16/74] OK  bez_pokrycia          16.2s  Jakie zdarzenie akta tej sprawy wiążą z datą 11 września 1
+  [ 17/74] BŁ  fakt_zakotwiczony     21.4s  Czego dotyczy kwota 180,00 zł w aktach tej sprawy?
+  [ 18/74] OK  pulapka_liczbowa      39.6s  Czego dotyczy kwota 140,03 zł w aktach tej sprawy?
+  [ 19/74] OK  fakt_zakotwiczony     12.8s  Jakie zdarzenie akta tej sprawy wiążą z datą 12 grudnia 20
+  [ 20/74] OK  bez_pokrycia          10.4s  Jakie zdarzenie akta tej sprawy wiążą z datą 19 lutego 201
+  [ 21/74] BŁ  fakt_zakotwiczony     12.0s  Jakie zdarzenie akta tej sprawy wiążą z datą 6 lipca 2023 
+  [ 22/74] OK  bez_pokrycia          23.2s  Jakie zdarzenie akta tej sprawy wiążą z datą 18 kwietnia 2
+  [ 23/74] BŁ  fakt_zakotwiczony     15.2s  Jakie zdarzenie akta tej sprawy wiążą z datą 9 września 20
+  [ 24/74] OK  bez_pokrycia          15.6s  Jakie zdarzenie akta tej sprawy wiążą z datą 13 kwietnia 2
+  [ 25/74] BŁ  fakt_zakotwiczony     12.1s  Co akta tej sprawy stwierdzają w odniesieniu do sygnatury 
+  [ 26/74] OK  bez_pokrycia           8.8s  Co akta tej sprawy stwierdzają w odniesieniu do sygnatury 
+  [ 27/74] OK  fakt_zakotwiczony     13.1s  W jakim kontekście akta tej sprawy powołują art. 135 § 1?
+  [ 28/74] OK  bez_pokrycia          44.0s  W jakim kontekście akta tej sprawy powołują art. 165 § 6?
+  [ 29/74] BŁ  fakt_zakotwiczony     21.3s  Jakie zdarzenie akta tej sprawy wiążą z datą 27 lutego 202
+  [ 30/74] OK  bez_pokrycia          30.8s  Jakie zdarzenie akta tej sprawy wiążą z datą 09 kwietnia 2
+  [ 31/74] OK  fakt_zakotwiczony     12.2s  Jakie zdarzenie akta tej sprawy wiążą z datą 4 listopada 1
+  [ 32/74] OK  bez_pokrycia          10.0s  Jakie zdarzenie akta tej sprawy wiążą z datą 5 lutego 1998
+  [ 33/74] OK  fakt_zakotwiczony     17.4s  In what context do the case files invoke 18 U.S.C. 
+§ 3142
+  [ 34/74] OK  bez_pokrycia          16.3s  In what context do the case files invoke 14 U.S.C. 
+§ 3442
+  [ 35/74] BŁ  fakt_zakotwiczony     17.6s  What event do the case files associate with the date July 
+  [ 36/74] BŁ  bez_pokrycia           6.6s  What event do the case files associate with the date May 0
+  [ 37/74] BŁ  fakt_zakotwiczony      6.2s  What event do the case files associate with the date July 
+  [ 38/74] OK  bez_pokrycia           7.4s  What event do the case files associate with the date Janua
+  [ 39/74] BŁ  fakt_zakotwiczony      5.7s  What event do the case files associate with the date May 1
+  [ 40/74] OK  bez_pokrycia           6.4s  What event do the case files associate with the date March
+  [ 41/74] BŁ  fakt_zakotwiczony      6.3s  What event do the case files associate with the date Janua
+  [ 42/74] OK  bez_pokrycia           6.8s  What event do the case files associate with the date June 
+  [ 43/74] BŁ  fakt_zakotwiczony      6.4s  What does the period of 51 years refer to in these case fi
+  [ 44/74] BŁ  pulapka_liczbowa       5.6s  What does the period of 84 years refer to in these case fi
+  [ 45/74] BŁ  fakt_zakotwiczony      8.9s  What event do the case files associate with the date Septe
+  [ 46/74] OK  bez_pokrycia           6.3s  What event do the case files associate with the date Febru
+  [ 47/74] OK  fakt_zakotwiczony      5.3s  What event do the case files associate with the date Febru
+  [ 48/74] OK  bez_pokrycia           5.8s  What event do the case files associate with the date April
+  [ 49/74] OK  fakt_zakotwiczony     14.2s  What event do the case files associate with the date April
+  [ 50/74] BŁ  bez_pokrycia           5.9s  What event do the case files associate with the date Janua
+  [ 51/74] OK  fakt_zakotwiczony     31.6s  What event do the case files associate with the date March
+  [ 52/74] OK  bez_pokrycia           6.6s  What event do the case files associate with the date July 
+  [ 53/74] BŁ  fakt_zakotwiczony     15.2s  What event do the case files associate with the date March
+  [ 54/74] BŁ  bez_pokrycia           8.1s  What event do the case files associate with the date Octob
+  [ 55/74] OK  fakt_zakotwiczony      7.3s  What event do the case files associate with the date April
+  [ 56/74] BŁ  bez_pokrycia           6.3s  What event do the case files associate with the date Augus
+  [ 57/74] BŁ  fakt_zakotwiczony     26.0s  What event do the case files associate with the date Febru
+  [ 58/74] OK  bez_pokrycia          19.1s  What event do the case files associate with the date Janua
+  [ 59/74] OK  fakt_zakotwiczony      5.9s  What event do the case files associate with the date July 
+  [ 60/74] OK  bez_pokrycia           6.5s  What event do the case files associate with the date June 
+  [ 61/74] BŁ  fakt_zakotwiczony      5.5s  What event do the case files associate with the date Novem
+  [ 62/74] OK  bez_pokrycia           6.6s  What event do the case files associate with the date Janua
+  [ 63/74] BŁ  fakt_zakotwiczony      6.0s  What event do the case files associate with the date April
+  [ 64/74] OK  bez_pokrycia          10.2s  What event do the case files associate with the date May 2
+  [ 65/74] BŁ  szczelnosc             6.7s  What event do the case files associate with the date 26 ma
+  [ 66/74] OK  szczelnosc             4.1s  What event do the case files associate with the date 26 ma
+  [ 67/74] OK  szczelnosc             5.1s  What does the amount 140 zł relate to in these case files?
+  [ 68/74] OK  szczelnosc             6.6s  What do the case files state with respect to docket II K 3
+  [ 69/74] OK  szczelnosc             5.9s  In what context do the case files invoke art. 438?
+  [ 70/74] OK  szczelnosc            15.1s  Co akta tej sprawy stwierdzają w odniesieniu do sygnatury 
+  [ 71/74] OK  szczelnosc             4.3s  Co akta tej sprawy stwierdzają w odniesieniu do sygnatury 
+  [ 72/74] OK  szczelnosc             4.3s  Co akta tej sprawy stwierdzają w odniesieniu do sygnatury 
+  [ 73/74] OK  szczelnosc             8.9s  Jakie zdarzenie akta tej sprawy wiążą z datą April 22, 201
+  [ 74/74] OK  szczelnosc             3.3s  Jakie zdarzenie akta tej sprawy wiążą z datą April 22, 201

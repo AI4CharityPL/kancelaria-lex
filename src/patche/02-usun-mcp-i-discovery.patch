@@ -1,0 +1,108 @@
+diff --git a/config/asgi.py b/config/asgi.py
+index 2503668..4a850cb 100644
+--- a/config/asgi.py
++++ b/config/asgi.py
+@@ -35,7 +35,8 @@ from config.websocket.consumers.thread_updates import (  # noqa: E402
+ from config.websocket.consumers.unified_agent_conversation import (  # noqa: E402
+     UnifiedAgentConsumer,
+ )
+-from opencontractserver.mcp.server import mcp_asgi_app  # noqa: E402
++# [kancelaria-lex] PATCH 02 — import serwera MCP USUNIĘTY.
++# from opencontractserver.mcp.server import mcp_asgi_app  # noqa: E402
+ 
+ logger = logging.getLogger(__name__)
+ 
+@@ -48,36 +49,32 @@ sys.path.append(str(BASE_DIR / "delphic"))
+ django_application = get_asgi_application()
+ 
+ 
+-def create_http_router(django_app, mcp_app):
++def create_http_router(django_app):
+     """
+-    Create an HTTP router that dispatches to MCP or Django based on path.
++    [kancelaria-lex] PATCH 02 — routing MCP USUNIĘTY.
+ 
+-    Routes MCP endpoints to the MCP ASGI app, everything else to Django.
+-    The MCP server supports multiple transports:
+-    - Streamable HTTP at /mcp (recommended, stateless mode)
+-    - Corpus-scoped HTTP at /mcp/corpus/{slug}/ (scoped to single corpus)
+-    - SSE at /sse (deprecated, for backward compatibility)
++    Upstream dispatchował ścieżki /mcp, /mcp/*, /sse, /sse/* do osobnej
++    aplikacji ASGI PRZED Django. Miało to dwie konsekwencje warte
++    odnotowania:
++
++      * ustawienie MCP_SERVER["enabled"]=False NIE wyłączało routingu —
++        router powstawał przy imporcie modułu, niezależnie od tej flagi;
++      * żądania MCP omijały ALLOWED_HOSTS i django-cors-headers, bo
++        nigdy nie docierały do Django.
++
++    Wyłączenie konfiguracją byłoby więc pozorne. Routing jest usunięty,
++    a wszystkie ścieżki idą do Django, gdzie /mcp zwraca 404.
++
++    Zagrożenie I-4, wymóg samodzielnej instancji (docs/01-kontekst-i-cele.md).
+     """
+ 
+     async def router(scope, receive, send):
+-        path = scope.get("path", "")
+-        # Match MCP endpoints:
+-        # - /mcp or /mcp/* (global and corpus-scoped)
+-        # - /sse or /sse/* (deprecated SSE transport)
+-        if (
+-            path == "/mcp"
+-            or path.startswith("/mcp/")
+-            or path == "/sse"
+-            or path.startswith("/sse/")
+-        ):
+-            await mcp_app(scope, receive, send)
+-        else:
+-            await django_app(scope, receive, send)
++        await django_app(scope, receive, send)
+ 
+     return router
+ 
+ 
+-http_application = create_http_router(django_application, mcp_asgi_app)
++http_application = create_http_router(django_application)
+ 
+ # Unified agent consumer - handles all agent conversation contexts
+ # Replaces legacy DocumentQueryConsumer, CorpusQueryConsumer, StandaloneDocumentQueryConsumer
+diff --git a/config/settings/base.py b/config/settings/base.py
+index 4a12d41..7637c29 100644
+--- a/config/settings/base.py
++++ b/config/settings/base.py
+@@ -178,7 +178,10 @@ LOCAL_APPS = [
+     "opencontractserver.agents",
+     "opencontractserver.worker_uploads",
+     "opencontractserver.document_imports",
+-    "opencontractserver.discovery",
++    # [kancelaria-lex] PATCH 02 — aplikacja `discovery` USUNIĘTA z drzewa.
++    # Ogłaszała instancję agentom (.well-known/mcp.json, llms.txt) wraz
++    # z konfiguracją dla Claude Desktop. Wymóg samodzielnej instancji.
++    # "opencontractserver.discovery",
+     "opencontractserver.benchmarks",
+     "opencontractserver.research",
+ ]
+diff --git a/config/urls.py b/config/urls.py
+index d5f09fe..d4994f7 100644
+--- a/config/urls.py
++++ b/config/urls.py
+@@ -46,8 +46,17 @@ def home_redirect(request):
+ 
+ 
+ urlpatterns = [
+-    # Discovery endpoints (robots.txt, llms.txt, sitemap.xml, .well-known/mcp.json)
+-    path("", include("opencontractserver.discovery.urls")),
++    # [kancelaria-lex] PATCH 02 — endpointy discovery USUNIĘTE.
++    #
++    # Upstream publikował tu robots.txt, llms.txt, sitemap.xml oraz
++    # .well-known/mcp.json — czyli ogłaszał instancję agentom, razem
++    # z gotowym fragmentem konfiguracji dla Claude Desktop
++    # ("mcpServers": {...}, mcp-remote <base_url>/mcp/).
++    #
++    # Dla instancji przetwarzającej akta spraw karnych jest to dokładne
++    # przeciwieństwo wymogu: system ma być NIEPRZYŁĄCZALNY.
++    # Zagrożenie I-4, docs/01-kontekst-i-cele.md.
++    # path("", include("opencontractserver.discovery.urls")),
+     path("api/health/", lambda request: JsonResponse({"status": "ok"})),
+     path("", home_redirect, name="home_redirect"),  # Root URL redirect to port 3000
+     # Custom admin login/logout views (must be before admin.site.urls to override defaults)

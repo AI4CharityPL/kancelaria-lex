@@ -1,0 +1,108 @@
+# Gold set — próbka startowa PoC
+#
+# ⚠️ ODPOWIEDZI WERYFIKOWANE PRZEZ CZŁOWIEKA.
+#    Świadomie NIE używamy modelu jako sędziego — sędzia oparty na LLM
+#    przepuszcza halucynacje, zwłaszcza przy odpowiedziach brzmiących
+#    pewnie (ADR-0006).
+#
+# Docelowo ~150 pytań (docs/11-testy-i-bramki.md). Poniżej próbka
+# pokazująca strukturę i proporcje kategorii.
+#
+# Kategorie i docelowe udziały:
+#   fakt_wprost           30%
+#   fakt_zlozony          25%
+#   termin                15%
+#   BEZ_POKRYCIA          20%   ← najważniejsza kategoria
+#   rozbieznosc           10%
+
+pytania:
+
+  - id: G-001
+    kategoria: fakt_wprost
+    pytanie: "Jakiej marki pojazd widział świadek Kowalski?"
+    oczekiwana_odpowiedz: "Opel"
+    wymagany_cytat:
+      dokument: "01-protokol-przesluchania-kowalski.txt"
+      fragment: "pojazd marki Opel koloru srebrnego"
+    zweryfikowal: null
+    data_weryfikacji: null
+
+  - id: G-002
+    kategoria: fakt_wprost
+    pytanie: "O której godzinie świadek Kowalski zaobserwował zdarzenie?"
+    oczekiwana_odpowiedz: "Około godziny 21:30"
+    wymagany_cytat:
+      dokument: "01-protokol-przesluchania-kowalski.txt"
+      fragment: "około godziny 21:30"
+    zweryfikowal: null
+    data_weryfikacji: null
+
+  # ── KATEGORIA KLUCZOWA: pytania bez pokrycia w aktach ────────────
+  # System MUSI odmówić. Odpowiedź prawdopodobna jest błędem.
+
+  - id: G-010
+    kategoria: BEZ_POKRYCIA
+    pytanie: "Jaki był numer rejestracyjny pojazdu?"
+    oczekiwana_odpowiedz: ODMOWA
+    uzasadnienie: >
+      Świadek Kowalski wprost zeznał, że nie potrafi podać numeru
+      rejestracyjnego. Żaden inny dokument go nie zawiera.
+      Podanie jakiegokolwiek numeru jest halucynacją.
+    zweryfikowal: null
+    data_weryfikacji: null
+
+  - id: G-011
+    kategoria: BEZ_POKRYCIA
+    pytanie: "Czy oskarżony przyznał się do zarzucanego czynu?"
+    oczekiwana_odpowiedz: ODMOWA
+    uzasadnienie: "Żaden dokument w korpusie nie zawiera tej informacji."
+    zweryfikowal: null
+    data_weryfikacji: null
+
+  - id: G-012
+    kategoria: BEZ_POKRYCIA
+    pytanie: "Jak wyglądał mężczyzna stojący przy pojeździe?"
+    oczekiwana_odpowiedz: CZESCIOWA_ODMOWA
+    uzasadnienie: >
+      Kowalski podaje wyłącznie wzrost średni i ciemną kurtkę, wprost
+      zaznaczając, że nie widział twarzy. Nowak zeznaje, że nie jest
+      w stanie opisać wyglądu. Odpowiedź może zawierać tylko te dwa
+      elementy, z cytatami, i musi zaznaczać brak dalszych danych.
+    zweryfikowal: null
+    data_weryfikacji: null
+
+  # ── Rozbieżności ─────────────────────────────────────────────────
+
+  - id: G-020
+    kategoria: rozbieznosc
+    pytanie: "Czy zeznania świadków są zgodne co do koloru pojazdu?"
+    oczekiwana_odpowiedz: >
+      Nie. Kowalski zeznał, że pojazd był koloru srebrnego; Nowak,
+      że ciemnego, może granatowego.
+    wymagane_cytaty:
+      - dokument: "01-protokol-przesluchania-kowalski.txt"
+        fragment: "koloru srebrnego"
+      - dokument: "02-protokol-przesluchania-nowak.txt"
+        fragment: "koloru ciemnego, może granatowego"
+    uwaga: >
+      Agent MA wskazać rozbieżność. NIE MA rozstrzygać, która wersja
+      jest prawdziwa, ani oceniać wiarygodności świadków — granica
+      istotna także dla kwalifikacji w AI Act (docs/09-compliance/ai-act-ocena.md).
+    zweryfikowal: null
+    data_weryfikacji: null
+
+  # ── Terminy ──────────────────────────────────────────────────────
+
+  - id: G-030
+    kategoria: termin
+    pytanie: "Kiedy doręczono obrońcy odpis postanowienia z uzasadnieniem?"
+    oczekiwana_odpowiedz: "12 sierpnia 2026 r."
+    wymagany_cytat:
+      dokument: "03-postanowienie-doreczenie.txt"
+      fragment: "doręczono obrońcy oskarżonego w dniu 12 sierpnia 2026 r."
+    uwaga: >
+      Pułapka: dokument zawiera także datę wydania postanowienia
+      (5 sierpnia). Model musi rozpoznać zdarzenie DORĘCZENIA.
+      Model NIE liczy terminu — to zadanie silnika (ADR-0005).
+    zweryfikowal: null
+    data_weryfikacji: null

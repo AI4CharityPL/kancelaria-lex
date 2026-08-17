@@ -1,0 +1,254 @@
+{
+  "data": "2026-08-15T17:18:43+00:00",
+  "wersja": "v2",
+  "sprawy": [
+    4
+  ],
+  "ziarno": 42,
+  "podsumowanie": {
+    "przypadkow": 16,
+    "poprawnych": 12,
+    "trafnosc": 0.5,
+    "J3_odmowa_poprawna": 1.0,
+    "bez_pokrycia": 8,
+    "bez_pokrycia_odmowionych": 8,
+    "falszywe_odpowiedzi": 0,
+    "etapy": {
+      "kontrola": 1,
+      "zakotwiczenie": 9,
+      "odpowiedz": 4,
+      "wsparcie": 2
+    },
+    "etapy_falszywych_odmow": {
+      "kontrola": 1,
+      "zakotwiczenie": 1,
+      "wsparcie": 2
+    },
+    "falszywych_odmow": 4,
+    "blednych_odpowiedzi": 0,
+    "recall_retrievalu": 1.0,
+    "srednia_wystapien": 2.375,
+    "bez_wystapien": 0
+  },
+  "wg_jezyka": {
+    "en": {
+      "przypadkow": 16,
+      "poprawnych": 12,
+      "trafnosc": 0.5,
+      "J3_odmowa_poprawna": 1.0,
+      "bez_pokrycia": 8,
+      "bez_pokrycia_odmowionych": 8,
+      "falszywe_odpowiedzi": 0,
+      "etapy": {
+        "kontrola": 1,
+        "zakotwiczenie": 9,
+        "odpowiedz": 4,
+        "wsparcie": 2
+      },
+      "etapy_falszywych_odmow": {
+        "kontrola": 1,
+        "zakotwiczenie": 1,
+        "wsparcie": 2
+      },
+      "falszywych_odmow": 4,
+      "blednych_odpowiedzi": 0,
+      "recall_retrievalu": 1.0,
+      "srednia_wystapien": 2.375,
+      "bez_wystapien": 0
+    }
+  },
+  "przypadki": [
+    {
+      "id": "2e54f7bd5c36",
+      "kategoria": "fakt_zakotwiczony",
+      "jezyk": "en",
+      "etap": "kontrola",
+      "poprawny": false,
+      "trafiony": false,
+      "zdanie_dotarlo": true,
+      "wystapien": 5,
+      "czas_s": 22.31,
+      "szczegol": "Niezależna kontrola uznała, że zacytowane zdanie tego nie stwierdza. The sentence mentions a document being filed on Jun"
+    },
+    {
+      "id": "2941844fe8f1",
+      "kategoria": "bez_pokrycia",
+      "jezyk": "en",
+      "etap": "zakotwiczenie",
+      "poprawny": true,
+      "trafiony": false,
+      "zdanie_dotarlo": true,
+      "wystapien": 0,
+      "czas_s": 38.43,
+      "szczegol": "Cytat pochodzi z akt, ale nie zawiera żadnego z wyróżników z pytania (data, kwota, sygnatura, numer). Odpowiedź nie doty"
+    },
+    {
+      "id": "dc3e58b4b64d",
+      "kategoria": "fakt_zakotwiczony",
+      "jezyk": "en",
+      "etap": "odpowiedz",
+      "poprawny": true,
+      "trafiony": true,
+      "zdanie_dotarlo": true,
+      "wystapien": 1,
+      "czas_s": 16.72,
+      "szczegol": ""
+    },
+    {
+      "id": "7965a4a2463b",
+      "kategoria": "bez_pokrycia",
+      "jezyk": "en",
+      "etap": "zakotwiczenie",
+      "poprawny": true,
+      "trafiony": false,
+      "zdanie_dotarlo": true,
+      "wystapien": 0,
+      "czas_s": 15.36,
+      "szczegol": "Cytat pochodzi z akt, ale nie zawiera żadnego z wyróżników z pytania (data, kwota, sygnatura, numer). Odpowiedź nie doty"
+    },
+    {
+      "id": "0f4c8c9f3975",
+      "kategoria": "fakt_zakotwiczony",
+      "jezyk": "en",
+      "etap": "odpowiedz",
+      "poprawny": true,
+      "trafiony": true,
+      "zdanie_dotarlo": true,
+      "wystapien": 2,
+      "czas_s": 17.87,
+      "szczegol": ""
+    },
+    {
+      "id": "f11603edfb3a",
+      "kategoria": "bez_pokrycia",
+      "jezyk": "en",
+      "etap": "zakotwiczenie",
+      "poprawny": true,
+      "trafiony": false,
+      "zdanie_dotarlo": true,
+      "wystapien": 0,
+      "czas_s": 15.67,
+      "szczegol": "Cytat pochodzi z akt, ale nie zawiera żadnego z wyróżników z pytania (data, kwota, sygnatura, numer). Odpowiedź nie doty"
+    },
+    {
+      "id": "6f59c1d5d01f",
+      "kategoria": "fakt_zakotwiczony",
+      "jezyk": "en",
+      "etap": "odpowiedz",
+      "poprawny": true,
+      "trafiony": true,
+      "zdanie_dotarlo": true,
+      "wystapien": 2,
+      "czas_s": 15.99,
+      "szczegol": ""
+    },
+    {
+      "id": "3f00e051b05e",
+      "kategoria": "bez_pokrycia",
+      "jezyk": "en",
+      "etap": "zakotwiczenie",
+      "poprawny": true,
+      "trafiony": false,
+      "zdanie_dotarlo": true,
+      "wystapien": 0,
+      "czas_s": 14.78,
+      "szczegol": "Cytat pochodzi z akt, ale nie zawiera żadnego z wyróżników z pytania (data, kwota, sygnatura, numer). Odpowiedź nie doty"
+    },
+    {
+      "id": "eeb0131aae19",
+      "kategoria": "fakt_zakotwiczony",
+      "jezyk": "en",
+      "etap": "zakotwiczenie",
+      "poprawny": false,
+      "trafiony": false,
+      "zdanie_dotarlo": true,
+      "wystapien": 2,
+      "czas_s": 7.41,
+      "szczegol": "Cytat pochodzi z akt, ale nie zawiera żadnego z wyróżników z pytania (data, kwota, sygnatura, numer). Odpowiedź nie doty"
+    },
+    {
+      "id": "8982c73b17a3",
+      "kategoria": "pulapka_liczbowa",
+      "jezyk": "en",
+      "etap": "zakotwiczenie",
+      "poprawny": true,
+      "trafiony": false,
+      "zdanie_dotarlo": true,
+      "wystapien": 0,
+      "czas_s": 7.43,
+      "szczegol": "Cytat pochodzi z akt, ale nie zawiera żadnego z wyróżników z pytania (data, kwota, sygnatura, numer). Odpowiedź nie doty"
+    },
+    {
+      "id": "adaec875eaaa",
+      "kategoria": "fakt_zakotwiczony",
+      "jezyk": "en",
+      "etap": "wsparcie",
+      "poprawny": false,
+      "trafiony": false,
+      "zdanie_dotarlo": true,
+      "wystapien": 2,
+      "czas_s": 7.28,
+      "szczegol": "twierdzenie powołuje okres2006r, a w cytacie tego nie ma"
+    },
+    {
+      "id": "8e654f036ba2",
+      "kategoria": "bez_pokrycia",
+      "jezyk": "en",
+      "etap": "zakotwiczenie",
+      "poprawny": true,
+      "trafiony": false,
+      "zdanie_dotarlo": true,
+      "wystapien": 0,
+      "czas_s": 9.07,
+      "szczegol": "Cytat pochodzi z akt, ale nie zawiera żadnego z wyróżników z pytania (data, kwota, sygnatura, numer). Odpowiedź nie doty"
+    },
+    {
+      "id": "b950d35161bd",
+      "kategoria": "fakt_zakotwiczony",
+      "jezyk": "en",
+      "etap": "odpowiedz",
+      "poprawny": true,
+      "trafiony": true,
+      "zdanie_dotarlo": true,
+      "wystapien": 3,
+      "czas_s": 25.27,
+      "szczegol": ""
+    },
+    {
+      "id": "644f79dae905",
+      "kategoria": "bez_pokrycia",
+      "jezyk": "en",
+      "etap": "zakotwiczenie",
+      "poprawny": true,
+      "trafiony": false,
+      "zdanie_dotarlo": true,
+      "wystapien": 0,
+      "czas_s": 14.49,
+      "szczegol": "Cytat pochodzi z akt, ale nie zawiera żadnego z wyróżników z pytania (data, kwota, sygnatura, numer). Odpowiedź nie doty"
+    },
+    {
+      "id": "364662151fc7",
+      "kategoria": "fakt_zakotwiczony",
+      "jezyk": "en",
+      "etap": "wsparcie",
+      "poprawny": false,
+      "trafiony": false,
+      "zdanie_dotarlo": true,
+      "wystapien": 2,
+      "czas_s": 6.6,
+      "szczegol": "twierdzenie powołuje okres2016r, a w cytacie tego nie ma"
+    },
+    {
+      "id": "920fe14aa79d",
+      "kategoria": "bez_pokrycia",
+      "jezyk": "en",
+      "etap": "zakotwiczenie",
+      "poprawny": true,
+      "trafiony": false,
+      "zdanie_dotarlo": true,
+      "wystapien": 0,
+      "czas_s": 8.2,
+      "szczegol": "Cytat pochodzi z akt, ale nie zawiera żadnego z wyróżników z pytania (data, kwota, sygnatura, numer). Odpowiedź nie doty"
+    }
+  ]
+}

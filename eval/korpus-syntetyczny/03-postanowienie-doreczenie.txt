@@ -1,0 +1,38 @@
+SĄD REJONOWY W NOWYM MIEŚCIE
+II Wydział Karny
+
+Sygnatura akt: II K 147/26
+
+POSTANOWIENIE
+
+Dnia 5 sierpnia 2026 r.
+
+Sąd Rejonowy w Nowym Mieście, II Wydział Karny, w składzie:
+Przewodniczący: SSR Maria Wiśniewska
+
+po rozpoznaniu w dniu 5 sierpnia 2026 r. sprawy z wniosku obrońcy oskarżonego
+
+postanawia:
+
+oddalić wniosek dowodowy obrońcy o dopuszczenie dowodu z opinii biegłego z zakresu badań osmologicznych.
+
+UZASADNIENIE
+
+Wniosek nie zasługiwał na uwzględnienie. Okoliczności, na które dowód miał zostać przeprowadzony, zostały już ustalone na podstawie zebranego materiału dowodowego.
+
+
+ADNOTACJA O DORĘCZENIU
+
+Odpis postanowienia wraz z uzasadnieniem doręczono obrońcy oskarżonego w dniu 12 sierpnia 2026 r.
+
+Potwierdzenie odbioru znajduje się w aktach sprawy.
+
+
+UWAGA DLA TESTÓW (nie jest częścią dokumentu):
+Dokument testuje agenta terminów A-2 i silnik deterministyczny.
+Zdarzenie inicjujące: DORĘCZENIE (12.08.2026), nie wydanie
+postanowienia (05.08.2026) — model musi rozpoznać właściwe
+zdarzenie, a nie pierwszą napotkaną datę.
+Właściwa reguła: zazalenie_karne (7 dni od dnia następnego).
+Reguła jest NIEZATWIERDZONA, więc termin ma być oznaczony jako
+niewiążący — patrz test_silnik_terminow.py.

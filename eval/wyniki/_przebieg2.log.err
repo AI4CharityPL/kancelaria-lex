@@ -1,0 +1,49 @@
+Generowanie przypadków…
+  sprawa 3 [pl]: 320 dok., 16 przypadków
+  sprawa 4 [en]: 402 dok., 16 przypadków
+  szczelność 3→4: 5
+  szczelność 4→3: 5
+  [  1/42] OK  fakt_zakotwiczony     14.8s  Co akta tej sprawy stwierdzają w odniesieniu do sygnatury 
+  [  2/42] OK  bez_pokrycia          31.6s  Co akta tej sprawy stwierdzają w odniesieniu do sygnatury 
+  [  3/42] OK  fakt_zakotwiczony     10.2s  Co akta tej sprawy stwierdzają w odniesieniu do sygnatury 
+  [  4/42] OK  bez_pokrycia          19.5s  Co akta tej sprawy stwierdzają w odniesieniu do sygnatury 
+  [  5/42] BŁ  fakt_zakotwiczony     26.6s  Czego dotyczy kwota 1.000,00 zł w aktach tej sprawy?
+  [  6/42] OK  pulapka_liczbowa       9.7s  Czego dotyczy kwota 1.004,05 zł w aktach tej sprawy?
+  [  7/42] OK  fakt_zakotwiczony     13.0s  Jakie zdarzenie akta tej sprawy wiążą z datą 16 lutego 202
+  [  8/42] OK  bez_pokrycia          10.5s  Jakie zdarzenie akta tej sprawy wiążą z datą 24 grudnia 20
+  [  9/42] BŁ  fakt_zakotwiczony     13.4s  Co akta tej sprawy stwierdzają w odniesieniu do sygnatury 
+  [ 10/42] OK  bez_pokrycia          13.0s  Co akta tej sprawy stwierdzają w odniesieniu do sygnatury 
+  [ 11/42] BŁ  fakt_zakotwiczony     18.3s  Jakie zdarzenie akta tej sprawy wiążą z datą 5 lutego 2025
+  [ 12/42] OK  bez_pokrycia          16.3s  Jakie zdarzenie akta tej sprawy wiążą z datą 23 kwietnia 2
+  [ 13/42] OK  fakt_zakotwiczony     11.5s  Jakie zdarzenie akta tej sprawy wiążą z datą 23 październi
+  [ 14/42] OK  bez_pokrycia          15.1s  Jakie zdarzenie akta tej sprawy wiążą z datą 10 grudnia 20
+  [ 15/42] BŁ  fakt_zakotwiczony     19.3s  Jakie zdarzenie akta tej sprawy wiążą z datą 23 lipca 1974
+  [ 16/42] OK  bez_pokrycia          16.6s  Jakie zdarzenie akta tej sprawy wiążą z datą 11 września 1
+  [ 17/42] OK  fakt_zakotwiczony     16.4s  In what context do the case files invoke 18 U.S.C. 
+§ 3142
+  [ 18/42] OK  bez_pokrycia          16.8s  In what context do the case files invoke 14 U.S.C. 
+§ 3442
+  [ 19/42] OK  fakt_zakotwiczony      6.5s  What event do the case files associate with the date July 
+  [ 20/42] BŁ  bez_pokrycia           6.4s  What event do the case files associate with the date May 0
+  [ 21/42] OK  fakt_zakotwiczony      7.1s  What event do the case files associate with the date July 
+  [ 22/42] OK  bez_pokrycia           6.8s  What event do the case files associate with the date Janua
+  [ 23/42] BŁ  fakt_zakotwiczony      6.2s  What event do the case files associate with the date May 1
+  [ 24/42] OK  bez_pokrycia           7.4s  What event do the case files associate with the date March
+  [ 25/42] BŁ  fakt_zakotwiczony      6.1s  What event do the case files associate with the date Janua
+  [ 26/42] OK  bez_pokrycia           6.8s  What event do the case files associate with the date June 
+  [ 27/42] BŁ  fakt_zakotwiczony      6.7s  What does the period of 51 years refer to in these case fi
+  [ 28/42] BŁ  pulapka_liczbowa       5.8s  What does the period of 84 years refer to in these case fi
+  [ 29/42] OK  fakt_zakotwiczony      7.2s  What event do the case files associate with the date Septe
+  [ 30/42] OK  bez_pokrycia           6.6s  What event do the case files associate with the date Febru
+  [ 31/42] OK  fakt_zakotwiczony      5.1s  What event do the case files associate with the date Febru
+  [ 32/42] OK  bez_pokrycia           5.9s  What event do the case files associate with the date April
+  [ 33/42] BŁ  szczelnosc             6.4s  What event do the case files associate with the date 26 ma
+  [ 34/42] OK  szczelnosc             4.2s  What event do the case files associate with the date 26 ma
+  [ 35/42] OK  szczelnosc             5.0s  What does the amount 140 zł relate to in these case files?
+  [ 36/42] OK  szczelnosc             6.5s  What do the case files state with respect to docket II K 3
+  [ 37/42] OK  szczelnosc             5.9s  In what context do the case files invoke art. 438?
+  [ 38/42] OK  szczelnosc            14.9s  Co akta tej sprawy stwierdzają w odniesieniu do sygnatury 
+  [ 39/42] OK  szczelnosc             4.3s  Co akta tej sprawy stwierdzają w odniesieniu do sygnatury 
+  [ 40/42] OK  szczelnosc             4.4s  Co akta tej sprawy stwierdzają w odniesieniu do sygnatury 
+  [ 41/42] OK  szczelnosc             9.0s  Jakie zdarzenie akta tej sprawy wiążą z datą April 22, 201
+  [ 42/42] OK  szczelnosc             3.3s  Jakie zdarzenie akta tej sprawy wiążą z datą April 22, 201

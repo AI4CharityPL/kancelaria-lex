@@ -1,0 +1,99 @@
+# ══════════════════════════════════════════════════════════════════
+#  ZASADA NADRZĘDNA: rzeczywiste akta NIGDY nie trafiają do repozytorium.
+#  Prace deweloperskie prowadzimy wyłącznie na korpusie syntetycznym
+#  (docs/09-compliance/tajemnica-zawodowa.md, wymaganie T-6).
+# ══════════════════════════════════════════════════════════════════
+
+# Dane spraw — bezwzględnie poza repozytorium
+dane/
+akta/
+sprawy/
+*.akta
+
+# ⚠️ Raport wejściowy — dokument PRYWATNY, przygotowany dla konkretnej
+# osoby i podpisany jej imieniem. Nie niesie niczego, czego nie ma
+# w docs/01–22, a jego publikacja ujawniałaby, kto zamówił tę pracę.
+# Usunięty przed publikacją 17.08.2026; wpis pilnuje, żeby nie wrócił.
+docs/00-wejscie/
+
+# Korpusy pomiarowe — publiczne, ale ciężkie i nie są kodem.
+# Pobierane osobno; w repozytorium zostaje wyłącznie opis w eval/README.md.
+#   korpus-rzeczywisty  16,3 MB   320 orzeczeń SAOS
+#   sprawa-lacey       158,6 MB   450 PDF + 402 txt z RECAP
+eval/korpus-rzeczywisty/
+eval/sprawa-lacey/
+
+# Wagi modeli — duże i niezmienne; w repo tylko manifesty i sumy
+models/**/*.gguf
+models/**/*.safetensors
+models/**/*.bin
+models/**/*.onnx
+models/**/*.pt
+
+# ⚠️ CAŁY KATALOG WAG, NIE TYLKO ROZSZERZENIA — POPRAWIONE 17.08.2026.
+#
+# Wzorce powyżej łapią `model.safetensors`, ale NIE łapały
+# `tokenizer.json` (16,7 MB) ani `sentencepiece.bpe.model` (4,9 MB).
+# Kontrola przed publikacją wykazała, że 21,6 MB cudzych wag pojechałoby
+# do repozytorium — wbrew zasadzie, że `models/` trzyma manifesty i sumy
+# kontrolne, a nie same wagi. Wykluczamy katalog, a nie listę rozszerzeń:
+# przy następnym modelu dojdą kolejne nazwy plików, których nikt nie
+# przewidzi.
+#
+# Wagi wnosi się paczką offline — patrz src/aplikacje/embedder/README.md,
+# sumy kontrolne w models/manifest.md.
+models/e5-base/
+
+# Sekrety i klucze
+.env
+.env.*
+!.env.przyklad
+infra/ca/*.key
+infra/ca/*.pem
+infra/ca/*.crt
+*.p12
+*.pfx
+
+# Fork upstreamu — klonowany, nie wersjonowany tutaj
+src/opencontracts/
+
+# Wyniki ewaluacji z danymi
+eval/wyniki/**/*.jsonl
+
+# Przechwycenia ruchu — mogą zawierać treść dokumentów
+*.pcap
+*.pcapng
+
+# Kopie zapasowe
+*.dump
+*.sql.gz
+kopie/
+
+# Katalogi robocze narzędzi agentowych.
+#
+# ⚠️ NIE JEST TO KOSMETYKA. `.claude/worktrees/` to pełne kopie robocze
+#    repozytorium — razem z `panel/dane/panel.sqlite3` (26 MB akt).
+#    Wpis siedział dotąd wyłącznie w `.git/info/exclude`, który jest
+#    LOKALNY i nie jedzie z repozytorium. U każdego, kto sklonuje projekt,
+#    ochrony by nie było, a `git add -A` wciągnąłby bazę z aktami.
+.claude/worktrees/
+
+# Środowisko
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+node_modules/
+.coverage
+htmlcov/
+
+# Logi — mogą nieść sygnatury i nazwy dokumentów
+*.log
+
+# Systemowe
+.DS_Store
+Thumbs.db
+desktop.ini
+.~lock.*#
+*.tmp

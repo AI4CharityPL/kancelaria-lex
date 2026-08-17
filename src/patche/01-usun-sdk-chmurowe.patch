@@ -1,0 +1,38 @@
+diff --git a/requirements/base.txt b/requirements/base.txt
+index 1959303..c933c53 100644
+--- a/requirements/base.txt
++++ b/requirements/base.txt
+@@ -56,7 +56,12 @@ openai>=2.52.0,<3  # https://github.com/openai/openai-python (pydantic-ai 1.x re
+ # one of those provider SDKs disappearing from PyPI — as ``mistralai`` did
+ # on 2026-05-12, where ``pypi.org/pypi/mistralai/json`` started 404ing —
+ # breaks the entire install chain. Narrow extras = stable resolves.
+-pydantic-ai-slim[openai,anthropic,google,mcp]>=1.107.1,<2  # see issue #1451 before bumping the upper bound
++# [kancelaria-lex] PATCH 01 — ekstras zawężone do `openai`.
++# `anthropic`, `google`, `mcp` USUNIĘTE: kod, którego nie ma w obrazie,
++# nie wykona połączenia (warstwa A izolacji, ADR-0003).
++# ⚠️ Ekstras `openai` ZOSTAJE — Ollama jest routowana przez OpenAIProvider
++#    (ustalenie U-1, model_factory.py:236). Usunięcie zepsułoby model lokalny.
++pydantic-ai-slim[openai]>=1.107.1,<2  # see issue #1451 before bumping the upper bound
+ spacy
+ pdfplumber>=0.11.10  # https://github.com/jsvine/pdfplumber - PDF token extraction
+ shapely>=2.1.2  # https://github.com/shapely/shapely - spatial operations for bbox intersection
+@@ -78,11 +83,17 @@ django-graphql-jwt==0.4.0  # JWT signing/backends + refresh-token utilities only
+ 
+ # Telemetry
+ # ------------------------------------------------------------------------------
+-posthog==7.35.4  # https://github.com/posthog/posthog-python
++# [kancelaria-lex] PATCH 01 — telemetria USUNIĘTA (zagrożenie I-3).
++# Metadane użycia też są objęte tajemnicą zawodową. Wyłączenie zmienną
++# środowiskową zostawiłoby żywy, importowalny kod.
++# posthog==7.35.4  # https://github.com/posthog/posthog-python
+ 
+ # Model Context Protocol
+ # ------------------------------------------------------------------------------
+-mcp>=1.28.1,<2  # https://github.com/modelcontextprotocol/python-sdk
++# [kancelaria-lex] PATCH 02 — serwer MCP USUNIĘTY (zagrożenie I-4).
++# Wymóg samodzielnej instancji: system nie jest przyłączalny do ChatGPT,
++# Claude Code ani żadnego zewnętrznego klienta agentowego.
++# mcp>=1.28.1,<2  # https://github.com/modelcontextprotocol/python-sdk
+ # ^ pydantic-ai-slim[mcp] -> fastmcp-slim caps mcp<2.0 across its whole
+ # published range as of 2026-08; mcp 2.0 is a breaking rewrite (decorator-based
+ # handler registration on mcp.server.lowlevel.Server removed in favor of

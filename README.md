@@ -1,0 +1,200 @@
+# Before anything else: please help a dog shelter in Wrocław 🐕
+
+**This software is free. If it saves you time or money, please consider giving
+that value to animals who have nothing.**
+
+### 👉 [ratujemyzwierzaki.pl/schroniskowroclaw](https://www.ratujemyzwierzaki.pl/schroniskowroclaw)
+
+**TOZ Schronisko dla Bezdomnych Zwierząt we Wrocławiu** — the *TOZ Shelter for
+Homeless Animals in Wrocław* — has been rescuing animals **since 1962**. It is
+at 2 Ślazowa Street in Wrocław-Osobowice, run by **just over 30 employees**, some
+of whom are also inspectors for the Polish Society for the Prevention of Cruelty
+to Animals. They currently care for roughly **170 dogs and 140 cats**.
+
+> *"Together with the Volunteers who support us, we strive for one thing — to
+> help those who cannot ask for it themselves."*
+
+> **The donation page is in Polish only** — but it translates cleanly. In Chrome,
+> right-click anywhere on the page and choose **Translate to English** (Edge,
+> Firefox and Safari all have the same feature). Payment works the same
+> regardless of language.
+
+> ### ⚠️ This is not our fundraiser.
+>
+> We are **not affiliated** with the shelter. We do **not** collect, handle or
+> receive any of this money, and we get **nothing** if you donate. We are simply
+> pointing at someone else's fundraiser because we think it deserves your
+> attention more than we deserve your payment.
+>
+> Every złoty goes directly to the shelter through **ratujemyzwierzaki.pl**,
+> a Polish donation platform. Verify it yourself before giving — we would rather
+> you check than trust us.
+
+### Why we are asking now
+
+**Winter is the hard season for every shelter.** Heating costs rise exactly when
+donations fall. Food stocks run down. Medicine for older and sick animals — the
+ones nobody adopts — becomes the first thing a stretched budget cannot cover.
+
+Their three open fundraisers, **as checked on 17 August 2026**:
+
+| Fundraiser | Raised | Still needed |
+|---|---:|---:|
+| *Dla nich najważniejsza meta to własny dom!* | 2 696,37 zł | 27 303,63 zł |
+| *Koci sezon trwa!* (~300 cats in care) | 4 128 zł | 5 872 zł |
+| *Leczymy bezdomniaki* (veterinary care) | 3 757 zł | 46 243 zł |
+
+> **These numbers are a snapshot, not a live figure.** They change every day.
+> Open the link above for the real state — never rely on a table in a README.
+
+You can give **10, 20, 50 or 100 zł once**, or **20–50 zł monthly**. You can also
+"virtually adopt" a specific animal. Small and regular beats large and never.
+
+### Why we are giving this away
+
+This system took real work: measured, tested, documented. It could have been sold
+to law firms — that market pays well, and there is no good local-only competitor
+in Polish.
+
+We would rather it be free and have the shelter get the money instead.
+
+If you are a law firm and this replaces a paid tool, please donate roughly what
+you would have paid. If you are a student, a solo practitioner, or just curious —
+use it, donate nothing, and enjoy it. **No one is checking. There is no licence
+key. Nothing phones home.** The request above is a request, never a condition.
+
+---
+---
+
+# kancelaria-lex
+
+**A fully local AI system for analysing legal case files — built for Polish
+lawyers, in Polish, for Polish legal reality.**
+
+> **Language note.** This README and the setup guide are in English so anyone can
+> evaluate the project. **Everything else is deliberately Polish**: the interface,
+> the documentation in `docs/`, the code comments, and the legal logic. This is
+> not an oversight — it is a product for Polish advocates and legal counsel,
+> handling Polish case files under Polish procedure (k.p.k., k.p.c., procedural
+> deadlines, court reference numbers, professional secrecy). Translating it would
+> make it worse, not more useful.
+
+## What it does
+
+You load the case file. You ask a question in plain Polish. You get an answer
+where **every single sentence points to the exact place in the document it came
+from — down to the character.**
+
+Click a citation and the source opens with that passage highlighted. Not a page
+number. Not a paraphrase. The actual sentence.
+
+## What makes it different
+
+**The model never writes a quotation.** It selects a *sentence number*, and the
+code reconstructs the text from the source document. A fabricated citation is not
+"detected and rejected" — it is **impossible to express**.
+
+Measured on real-scale case files (722 documents, one Polish and one English
+case, 100 matched questions):
+
+| | |
+|---|---|
+| Citations inconsistent with the source | **0** — in every measurement run, without exception |
+| For comparison: leading commercial legal AI tools (Stanford study) | **17–34% fabricated citations** |
+| Citation accuracy | **above 80%** |
+| Correctly refusing when the files give no answer | **above 80%** |
+| Data sent anywhere | **0 bytes** |
+
+Every answerable question has an identically-worded twin that the files
+**cannot** answer — so "always answer" and "always refuse" both score zero.
+
+**We also publish the numbers that look bad.** See
+[`docs/22-wyniki-docelowe.md`](docs/22-wyniki-docelowe.md) — including where the
+system still falls short of its own targets, and four hypotheses we tested and
+had to throw away.
+
+## Fully local — enforced, not promised
+
+Nothing leaves the machine. Not case text, not fragments, not queries, not
+metadata, not usage statistics.
+
+Three independent layers enforce this:
+
+| Layer | Mechanism |
+|---|---|
+| **Code** | No cloud SDKs. The model address is validated at import — **a non-loopback address stops the process from starting.** A test scans the codebase so nobody can quietly add a second network call. |
+| **Network** | Four Docker segments, three with `internal: true` — no route to the gateway. |
+| **Proof** | Traffic captured at packet level while a container inside each segment actively tried to reach the internet: **zero packets left.** |
+
+It runs with the network cable unplugged. That is the simplest demonstration you
+can give a client or an auditor.
+
+## What it deliberately does **not** do
+
+- It does **not** give legal advice or assess your case.
+- It does **not** predict outcomes or assess the credibility of witnesses.
+- It does **not** classify conduct legally.
+- It does **not** replace reading the file.
+
+It extracts facts and shows you where they are. **The lawyer decides.** This
+boundary is built into the output schema, not just written in a disclaimer.
+
+## Also included
+
+Local profiles with password login and optional two-factor (TOTP), named
+conversation threads you can close and reopen, verified backups with restore,
+export to Markdown/HTML, a deterministic **procedural deadline calculator**
+(computed by code, never by the model), an append-only **audit log with a hash
+chain**, and a quality journal that never stores case content.
+
+## Getting started
+
+**→ [QUICKSTART.md](QUICKSTART.md)** — written for someone who has never used a
+command line. About 30 minutes, most of it waiting for model downloads.
+
+You need a Windows, macOS or Linux machine with **8 GB of VRAM** (or patience),
+about **15 GB of disk**, and no internet connection after setup.
+
+## Documentation
+
+All in `docs/`, in Polish:
+
+| | |
+|---|---|
+| [`01-kontekst-i-cele.md`](docs/01-kontekst-i-cele.md) | Why this exists and for whom |
+| [`05-izolacja-i-siec.md`](docs/05-izolacja-i-siec.md) | **The core**: three layers of isolation |
+| [`09-compliance/`](docs/09-compliance/) | GDPR/DPIA, KSC (NIS2), AI Act, professional secrecy |
+| [`22-wyniki-docelowe.md`](docs/22-wyniki-docelowe.md) | Measurements, including the unflattering ones |
+| [`15-rejestr-ryzyk.md`](docs/15-rejestr-ryzyk.md) | Open risks, honestly listed |
+
+Benchmark corpora are **not** in this repository — see
+[`eval/README.md`](eval/README.md) for how to obtain them. They are public
+sources; they are simply large, and this project's first rule is that real case
+files never enter a repository.
+
+## Official source
+
+The only current version lives at
+**[github.com/AI4CharityPL/kancelaria-lex](https://github.com/AI4CharityPL/kancelaria-lex)**.
+
+A copy received any other way — by email, on a drive, from an intermediary — is
+not official, and you cannot know what was changed in it.
+
+## Licence and liability
+
+MIT — see [LICENSE](LICENSE). Use it, sell services around it, fork it.
+
+Provided **as is**, without warranty. The authors are not liable for:
+
+- **misuse** — in particular relying on an answer without opening the citation;
+- **modified versions** or copies from outside the official source. Changing the
+  code can remove exactly the safeguards this whole argument rests on: network
+  isolation and citation verification;
+- **the firm's own legal obligations** — KSC assessment and registration, DPIA
+  approval, disk encryption, staff training.
+
+**Professional responsibility for any document you sign remains entirely yours.**
+
+---
+
+*Built in Poland. Given away for the dogs and cats in Wrocław.*

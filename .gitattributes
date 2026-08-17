@@ -1,0 +1,23 @@
+# Kod i dokumentacja trzymane w repozytorium z końcami LF, niezależnie
+# od tego, na czym ktoś pracuje. Bez tego commit z Windows zmienia
+# każdą linię każdego pliku i różnice przestają być czytelne.
+* text=auto eol=lf
+
+# Skrypty powłoki muszą mieć LF także w kopii roboczej — z CRLF
+# nie uruchomią się w kontenerze ani w WSL.
+*.sh text eol=lf
+
+# Skrypty PowerShell odwrotnie: natywnie CRLF.
+*.ps1 text eol=crlf
+
+# Binaria — bez konwersji.
+*.pdf   binary
+*.docx  binary
+*.png   binary
+*.jpg   binary
+*.gif   binary
+*.gguf  binary
+*.sqlite3 binary
+
+# Patche muszą zostać bajt w bajt, inaczej przestaną się nakładać.
+*.patch -text

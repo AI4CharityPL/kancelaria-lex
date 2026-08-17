@@ -1,0 +1,2229 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel spraw sądowych — kancelaria-lex</title>
+<style>
+  :root{
+    --tlo:#f5f6f8; --panel:#fff; --obwod:#dfe3e8; --tekst:#1c2430;
+    --przygaszony:#5d6b7a; --akcent:#1f4e79; --akcent-jasny:#e8eff6;
+    --prawo:#5b3f8a; --prawo-tlo:#f0ebf8;
+    --ostrzezenie:#8a5a00; --ostrzezenie-tlo:#fff6e5;
+    --blad:#a02020; --blad-tlo:#fdeaea; --ok:#1e6b3a; --ok-tlo:#eaf6ee;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --tlo:#14181d; --panel:#1c222a; --obwod:#2e3742; --tekst:#e6ebf1;
+    --przygaszony:#9aa8b8; --akcent:#7fb0e0; --akcent-jasny:#22303d;
+    --prawo:#b79ae0; --prawo-tlo:#2a2338;
+    --ostrzezenie:#e0b060; --ostrzezenie-tlo:#2e2718;
+    --blad:#e88; --blad-tlo:#33201f; --ok:#7fc99a; --ok-tlo:#1b2b22;
+  }}
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.55 -apple-system,"Segoe UI",Roboto,sans-serif;
+       background:var(--tlo);color:var(--tekst)}
+  header{background:var(--panel);border-bottom:1px solid var(--obwod);
+         padding:.5rem 1rem;display:flex;align-items:center;gap:.8rem;
+         position:sticky;top:0;z-index:20}
+  header h1{font-size:.98rem;margin:0;font-weight:650}
+  .zakladki{display:flex;gap:.3rem;margin-left:.6rem}
+  .zakladka{padding:.32rem .8rem;border:1px solid var(--obwod);border-radius:6px;
+            cursor:pointer;font-size:.86rem;background:var(--panel)}
+  .zakladka.aktywna{background:var(--akcent);color:#fff;border-color:var(--akcent)}
+  header .info{font-size:.78rem;color:var(--przygaszony);margin-left:auto}
+  .uklad{display:grid;grid-template-columns:250px 290px 1fr;gap:1px;
+         background:var(--obwod);min-height:calc(100vh - 44px)}
+  @media (max-width:1100px){.uklad{grid-template-columns:1fr}}
+  .kolumna{background:var(--panel);padding:.85rem;overflow-y:auto;
+           max-height:calc(100vh - 44px)}
+  h2{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;
+     color:var(--przygaszony);margin:0 0 .55rem;font-weight:650}
+  h3{font-size:.8rem;margin:1rem 0 .4rem;text-transform:uppercase;
+     letter-spacing:.05em;color:var(--przygaszony)}
+  button{font:inherit;padding:.38rem .7rem;border:1px solid var(--obwod);
+         background:var(--panel);color:var(--tekst);border-radius:5px;cursor:pointer}
+  button:hover{background:var(--akcent-jasny)}
+  button.glowny{background:var(--akcent);color:#fff;border-color:var(--akcent)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  input,textarea,select{font:inherit;width:100%;padding:.38rem .5rem;
+    border:1px solid var(--obwod);border-radius:5px;background:var(--tlo);
+    color:var(--tekst);margin-bottom:.4rem}
+  textarea{min-height:100px;resize:vertical;font-family:ui-monospace,monospace;
+           font-size:.84rem}
+  .karta{border:1px solid var(--obwod);border-radius:6px;padding:.5rem .6rem;
+         margin-bottom:.4rem;cursor:pointer;background:var(--panel)}
+  .karta:hover{border-color:var(--akcent)}
+  .karta.wybrana{border-color:var(--akcent);background:var(--akcent-jasny)}
+  .karta .syg{font-weight:650;font-size:.88rem}
+  .karta .meta{font-size:.75rem;color:var(--przygaszony);margin-top:.12rem}
+  .zakres{background:var(--akcent-jasny);border:1px solid var(--akcent);
+          border-radius:6px;padding:.45rem .65rem;margin-bottom:.7rem;font-size:.82rem}
+  .zakres b{display:block;font-size:.88rem}
+  /* ── postęp ── */
+  .postep{border:1px solid var(--akcent);border-radius:6px;padding:.6rem .8rem;
+          background:var(--akcent-jasny);margin-bottom:.8rem}
+  .postep .etap{font-size:.87rem;font-weight:600;margin-bottom:.35rem}
+  .pasek{height:6px;background:var(--obwod);border-radius:3px;overflow:hidden}
+  .pasek div{height:100%;background:var(--akcent);transition:width .3s;width:0}
+  .postep .licznik{font-size:.75rem;color:var(--przygaszony);margin-top:.3rem}
+  /* ── sekcje analizy ── */
+  .sekcja{margin-bottom:1.1rem}
+  .ustalenie{border-left:3px solid var(--ok);background:var(--ok-tlo);
+             padding:.45rem .65rem;margin-bottom:.45rem;border-radius:0 5px 5px 0}
+  .ustalenie .nr{font-weight:700;color:var(--ok);margin-right:.3rem}
+  .cytat{background:var(--tlo);border-radius:4px;padding:.35rem .55rem;
+         margin-top:.35rem;font-size:.83rem}
+  .cytat .zrodlo{font-size:.71rem;color:var(--przygaszony);margin-bottom:.15rem}
+
+/* ── Cytat klikalny → podgląd w aktach ──────────────────────────────
+   Cytat jest tu ZAKRESEM ZNAKÓW w dokumencie źródłowym (ADR-0007),
+   a nie odsyłaczem do pliku. Dlatego można otworzyć akta dokładnie
+   w tym miejscu i podświetlić fragment co do znaku — czego narzędzia
+   podające „źródło: dok. 3, s. 12" zrobić nie mogą.
+   Weryfikacja przestaje być zadaniem, a staje się odruchem.          */
+.cytat.klikalny{cursor:pointer;transition:background .12s,box-shadow .12s}
+.cytat.klikalny:hover{background:#eef4ff;box-shadow:inset 3px 0 0 var(--akcent)}
+.cytat .lupa{float:right;color:var(--akcent);opacity:0;transition:opacity .12s}
+.cytat.klikalny:hover .lupa{opacity:1}
+
+#zaslona{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;
+  z-index:50;align-items:center;justify-content:center;padding:2rem}
+#zaslona.widoczna{display:flex}
+#podglad{background:#fff;border-radius:8px;max-width:900px;width:100%;
+  max-height:86vh;display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:0 18px 48px rgba(0,0,0,.28)}
+#podglad header{padding:.8rem 1.1rem;border-bottom:1px solid var(--kreska);
+  display:flex;align-items:center;gap:.8rem}
+#podglad header .tytul{font-weight:600;font-size:.92rem;flex:1}
+#podglad header button{border:0;background:transparent;font-size:1.35rem;
+  cursor:pointer;color:var(--przygaszony);line-height:1}
+#tresc-dokumentu{overflow:auto;padding:1.1rem 1.3rem;white-space:pre-wrap;
+  font-size:.83rem;line-height:1.65;font-family:ui-monospace,Consolas,monospace}
+/* Podświetlenie fragmentu — ten sam zakres znaków, który przeszedł
+   weryfikację maszynową. */
+mark.cytowane{background:#fde68a;box-shadow:0 0 0 3px #fde68a;border-radius:2px}
+
+/* ── Wybór dokumentów i podpowiedź czasu ────────────────────────── */
+.karta .zazn{float:left;margin-right:.5rem;padding-top:.1rem}
+.karta .zazn input{width:15px;height:15px;cursor:pointer;accent-color:var(--akcent)}
+#podpowiedz-strategii{margin-top:.6rem}
+.strategia{font-size:.76rem;background:#eff6ff;border:1px solid #bfdbfe;
+  border-radius:6px;padding:.55rem .7rem;line-height:1.5}
+/* Powyżej progu podpowiedź OSTRZEGA, bo intuicja użytkownika jest tu
+   odwrotna do pomiaru: więcej dokumentów = wolniej I MNIEJ trafnie. */
+.strategia.uwaga{background:#fffbeb;border-color:#fcd34d}
+.strategia .opis{color:var(--przygaszony)}
+.strategia a{margin-left:.4rem;color:var(--akcent)}
+  .wniosek{border-left:3px solid var(--akcent);background:var(--akcent-jasny);
+           padding:.45rem .65rem;margin-bottom:.45rem;border-radius:0 5px 5px 0}
+  .oparte{font-size:.72rem;color:var(--przygaszony);margin-top:.25rem}
+  .chip{display:inline-block;background:var(--ok-tlo);color:var(--ok);
+        border:1px solid var(--ok);border-radius:3px;padding:0 .3rem;
+        margin-right:.2rem;font-size:.72rem;font-weight:600}
+  .rozbieznosc{border-left:3px solid var(--ostrzezenie);
+               background:var(--ostrzezenie-tlo);color:var(--ostrzezenie);
+               padding:.45rem .65rem;margin-bottom:.45rem;border-radius:0 5px 5px 0}
+  .luka{border-left:3px solid var(--przygaszony);background:var(--tlo);
+        padding:.4rem .65rem;margin-bottom:.35rem;font-size:.86rem;
+        border-radius:0 5px 5px 0}
+  .prawo{border-left:3px solid var(--prawo);background:var(--prawo-tlo);
+         padding:.45rem .65rem;margin-bottom:.45rem;border-radius:0 5px 5px 0}
+  .prawo .zrodlo{font-size:.73rem;color:var(--prawo);font-weight:600}
+  .odrzucone{border-left:3px solid var(--blad);background:var(--blad-tlo);
+             color:var(--blad);padding:.4rem .65rem;margin-bottom:.35rem;
+             font-size:.8rem;border-radius:0 5px 5px 0}
+
+/* ── Znaczniki kontroli wsparcia ────────────────────────────────────
+   Cytat może istnieć w aktach, znak w znak, i mimo to nie mówić tego,
+   co mu przypisano. Te znaczniki pokazują, ile wiadomo o TEJ relacji —
+   i muszą być czytelne bez legendy, bo prawnik czyta wynik, nie
+   dokumentację.                                                       */
+  .znacznik{display:inline-block;border-radius:3px;padding:0 .32rem;
+            font-size:.68rem;font-weight:700;letter-spacing:.02em;
+            margin-left:.4rem;vertical-align:.05rem;white-space:nowrap}
+  .znacznik.mocne{background:var(--ok-tlo);color:var(--ok);
+                  border:1px solid var(--ok)}
+  .znacznik.slabe{background:var(--ostrzezenie-tlo);color:var(--ostrzezenie);
+                  border:1px solid var(--ostrzezenie)}
+  .znacznik.niezweryfikowane{background:var(--tlo);color:var(--przygaszony);
+                             border:1px solid var(--przygaszony)}
+  .cytat .uwaga-kontroli{display:block;font-size:.73rem;margin-top:.3rem;
+                         color:var(--ostrzezenie);font-weight:600}
+/* Błąd kontroli niezależnej — nie znacznik, tylko widoczny komunikat.
+   Wymaganie postawione wprost: gdy kontrola orzeknie, że zacytowane
+   zdanie tego nie stwierdza, prawnik ma zobaczyć BŁĄD, a nie subtelną
+   ikonkę, którą da się przeoczyć w pośpiechu przed rozprawą.          */
+  .blad-kontroli{background:var(--blad-tlo);color:var(--blad);
+                 border:2px solid var(--blad);border-radius:6px;
+                 padding:.6rem .8rem;margin-bottom:.7rem;font-size:.85rem}
+  .blad-kontroli b{display:block;margin-bottom:.25rem}
+  .blad-kontroli .poz{margin-top:.4rem;padding-left:.7rem;
+                      border-left:2px solid var(--blad);font-size:.8rem}
+  .legenda{font-size:.73rem;color:var(--przygaszony);margin-top:.5rem;
+           border-top:1px solid var(--obwod);padding-top:.45rem}
+
+/* ── Wgrywanie plików ───────────────────────────────────────────── */
+  .upuszczalnia{border:2px dashed var(--obwod);border-radius:8px;
+    padding:1.1rem .8rem;text-align:center;font-size:.85rem;
+    background:var(--tlo);transition:border-color .15s,background .15s}
+  .upuszczalnia.nad{border-color:var(--akcent);background:var(--akcent-jasny)}
+  .upuszczalnia .opis{font-size:.76rem;color:var(--przygaszony)}
+  .upuszczalnia a{color:var(--akcent)}
+  .wgrany-ok{border-left:3px solid var(--ok);background:var(--ok-tlo);
+    color:var(--ok);padding:.4rem .6rem;margin:.35rem 0;font-size:.8rem;
+    border-radius:0 5px 5px 0}
+  .wgrany-ok .opis{color:var(--przygaszony);font-weight:400;margin-left:.3rem}
+/* Odrzucenie pliku jest wynikiem POPRAWNYM i ma być czytelne, a nie
+   schowane — dlatego pełny komunikat, nie ikonka. */
+  .wgrany-blad{border-left:3px solid var(--blad);background:var(--blad-tlo);
+    color:var(--blad);padding:.5rem .6rem;margin:.35rem 0;font-size:.8rem;
+    border-radius:0 5px 5px 0;line-height:1.45}
+  .wgrany-blad .opis{color:var(--przygaszony)}
+  .eksport{margin-top:1.2rem;padding-top:.8rem;border-top:1px solid var(--obwod);
+    font-size:.83rem}
+  .eksport b{margin-right:.6rem}
+  .eksport button{margin-right:.35rem}
+  .eksport .opis{font-size:.75rem;color:var(--przygaszony);margin-top:.45rem;
+    line-height:1.5;max-width:44rem}
+  .blad{background:var(--blad-tlo);color:var(--blad);border:1px solid var(--blad);
+        padding:.5rem .7rem;border-radius:6px;margin-bottom:.6rem;font-size:.85rem}
+  .pusto{color:var(--przygaszony);font-size:.85rem;padding:1rem 0;text-align:center}
+  .stopka{font-size:.74rem;color:var(--przygaszony);border-top:1px solid var(--obwod);
+          margin-top:.8rem;padding-top:.55rem}
+  details summary{cursor:pointer;font-size:.79rem;color:var(--przygaszony);
+                  margin-bottom:.4rem}
+  .znacznik{display:inline-block;font-size:.68rem;padding:.05rem .32rem;
+            border-radius:3px;background:var(--akcent-jasny);color:var(--akcent);
+            border:1px solid var(--obwod)}
+  .znacznik.obronczy{background:var(--blad-tlo);color:var(--blad);border-color:var(--blad)}
+  .rzad{display:flex;gap:.4rem;align-items:center;flex-wrap:wrap}
+  .rzad input{margin-bottom:0}
+  label.ptaszek{font-size:.8rem;display:flex;align-items:center;gap:.3rem;
+                color:var(--przygaszony)}
+  label.ptaszek input{width:auto;margin:0}
+</style>
+</head>
+<body>
+
+<style>
+/* ══════════════════════════════════════════════════════════════════
+   WARSTWA WIZUALNA — tożsamość kancelaryjna
+   ══════════════════════════════════════════════════════════════════
+   Paleta jest celowo powściągliwa: granat, grafit i stonowana czerwień
+   akcentu. To narzędzie do akt karnych, nie aplikacja konsumencka —
+   kolor ma porządkować, a nie zwracać uwagę.
+
+   Nagłówki krojem szeryfowym (tradycja pisma procesowego), interfejs
+   bezszeryfowym (czytelność na ekranie). Znak § użyty jako motyw
+   graficzny zamiast ilustracji — jest jednoznaczny i nie postarzeje
+   się jak rysunek wagi czy kolumny.                                  */
+:root{
+  --granat:#16293f; --granat-2:#1f3a57; --grafit:#0f1720;
+  --akcent-2:#8a2f39;          /* stonowana czerwień — sygnatury, uwagi */
+  --zloto:#b08a3e;             /* subtelny akcent zdobniczy            */
+  --pasek:248px;
+}
+body{margin:0;font-family:-apple-system,"Segoe UI",Roboto,system-ui,sans-serif}
+h1,h2,h3,.szeryf{font-family:Georgia,"Times New Roman",serif;letter-spacing:.01em}
+
+/* ── Ekran profilu ────────────────────────────────────────────────── */
+/* ⚠️ PRZEWIJANIE JEST TU WARUNKIEM DZIAŁANIA, NIE OZDOBĄ.
+   Zmierzone 16.08.2026 w przeglądarce: karta rejestracji ma 894 px
+   wysokości (sześć oświadczeń z podstawami prawnymi). Przy `align-items:
+   center` i `overflow: visible` karta wyższa od okna jest centrowana,
+   jej GÓRA ucieka poza ekran i NIE DA SIĘ do niej przewinąć — pole
+   loginu stało na -51 px. Użytkownik nie mógł się zalogować.
+   Dotyczyło to także typowego laptopa 1366×768, nie tylko wąskiego okna.
+
+   `margin:auto` zamiast `align-items:center` — przy `overflow:auto`
+   centrowanie flexem obcina górę, a automatyczny margines nie. */
+#ekran-profilu{position:fixed;inset:0;z-index:200;display:flex;
+  justify-content:center;overflow-y:auto;padding:1.5rem 1rem;
+  background:linear-gradient(135deg,var(--grafit) 0%,var(--granat) 55%,var(--granat-2) 100%)}
+#ekran-profilu.schowany{display:none}
+#ekran-profilu::before{content:"§";position:absolute;font-family:Georgia,serif;
+  font-size:46rem;line-height:1;color:#fff;opacity:.035;
+  right:-4rem;bottom:-9rem;pointer-events:none;user-select:none}
+.karta-profilu{background:#fff;border-radius:10px;padding:2.3rem 2.5rem;
+  width:min(430px,92vw);box-shadow:0 26px 70px rgba(0,0,0,.42);position:relative;
+  margin:auto}
+.karta-profilu .godlo{font-family:Georgia,serif;font-size:2.6rem;color:var(--granat);
+  line-height:1;margin-bottom:.15rem}
+.karta-profilu h2{margin:.1rem 0 .2rem;font-size:1.3rem;color:var(--granat)}
+.karta-profilu .pod{color:#64748b;font-size:.82rem;margin-bottom:1.5rem;line-height:1.5}
+.karta-profilu label{display:block;font-size:.76rem;font-weight:600;
+  color:#475569;margin:.85rem 0 .3rem;text-transform:uppercase;letter-spacing:.04em}
+.karta-profilu input,.karta-profilu select{width:100%;padding:.6rem .7rem;
+  border:1px solid #cbd5e1;border-radius:6px;font-size:.9rem;box-sizing:border-box}
+.karta-profilu input:focus,.karta-profilu select:focus{outline:0;
+  border-color:var(--granat-2);box-shadow:0 0 0 3px rgba(31,58,87,.13)}
+.karta-profilu button{width:100%;margin-top:1.5rem;padding:.72rem;border:0;
+  border-radius:6px;background:var(--granat);color:#fff;font-size:.92rem;
+  font-weight:600;cursor:pointer;transition:background .15s}
+.karta-profilu button:hover{background:var(--granat-2)}
+.zastrzezenie{margin-top:1.2rem;padding:.6rem .7rem;background:#fffbeb;
+  border:1px solid #fcd34d;border-radius:6px;font-size:.73rem;
+  color:#78500a;line-height:1.5}
+.ostatnie-profile{margin-top:1rem;font-size:.78rem;color:#64748b}
+.ostatnie-profile a{color:var(--granat-2);margin-right:.6rem;cursor:pointer}
+
+/* ── Powłoka aplikacji: pasek boczny + treść ──────────────────────── */
+#powloka{display:grid;grid-template-columns:var(--pasek) 1fr;min-height:100vh}
+#pasek{background:var(--granat);color:#cbd5e1;display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;overflow-y:auto}
+#pasek .marka{padding:1.15rem 1.2rem .9rem;border-bottom:1px solid rgba(255,255,255,.09)}
+#pasek .marka .nazwa{font-family:Georgia,serif;font-size:1.06rem;color:#fff;line-height:1.25}
+#pasek .marka .podtytul{font-size:.7rem;color:#8fa5bd;margin-top:.2rem}
+#pasek nav{padding:.7rem 0;flex:1}
+#pasek .grupa{font-size:.66rem;text-transform:uppercase;letter-spacing:.08em;
+  color:#7territory;color:#748ba5;padding:.9rem 1.2rem .35rem}
+#pasek a{display:flex;align-items:center;gap:.6rem;padding:.52rem 1.2rem;
+  color:#cbd5e1;text-decoration:none;font-size:.85rem;cursor:pointer;
+  border-left:3px solid transparent}
+#pasek a:hover{background:rgba(255,255,255,.06);color:#fff}
+#pasek a.aktywna{background:rgba(255,255,255,.10);color:#fff;
+  border-left-color:var(--zloto);font-weight:600}
+#pasek a .ikona{width:1.1rem;text-align:center;opacity:.85;font-size:.95rem}
+#pasek .stopka{padding:.9rem 1.2rem;border-top:1px solid rgba(255,255,255,.09);
+  font-size:.72rem;color:#8fa5bd}
+#pasek .stopka .kto{color:#fff;font-weight:600;font-size:.8rem}
+#pasek .stopka a{padding:0;border:0;color:#8fa5bd;font-size:.72rem;
+  text-decoration:underline;display:inline}
+#tresc{min-width:0;display:flex;flex-direction:column}
+#pasek-gorny{background:var(--panel);border-bottom:1px solid var(--obwod);
+  padding:.75rem 1.4rem;display:flex;align-items:center;gap:1rem}
+#pasek-gorny h1{margin:0;font-size:1.02rem;color:var(--tekst)}
+#pasek-gorny .info{margin-left:auto;font-size:.74rem;color:var(--przygaszony)}
+
+/* ── Instrukcja ───────────────────────────────────────────────────── */
+#widok-instrukcja{padding:1.6rem 2rem;max-width:820px}
+#widok-instrukcja h2{color:var(--akcent);margin-top:0}
+#widok-instrukcja h3{margin:1.7rem 0 .5rem;font-size:1rem;color:var(--tekst)}
+#widok-instrukcja p,#widok-instrukcja li{line-height:1.68;font-size:.88rem;
+  color:var(--tekst)}
+#widok-instrukcja .kafel{background:var(--panel);border:1px solid var(--obwod);
+  border-left:3px solid var(--akcent);border-radius:6px;padding:.9rem 1.1rem;
+  margin:.9rem 0}
+#widok-instrukcja .kafel.uwaga{border-left-color:var(--ostrzezenie);
+  background:var(--ostrzezenie-tlo)}
+#widok-instrukcja table{width:100%;border-collapse:collapse;margin:.9rem 0;
+  font-size:.84rem}
+#widok-instrukcja th,#widok-instrukcja td{text-align:left;padding:.45rem .6rem;
+  border-bottom:1px solid var(--obwod)}
+#widok-instrukcja th{color:var(--przygaszony);font-weight:600;font-size:.76rem;
+  text-transform:uppercase;letter-spacing:.03em}
+
+@media(max-width:920px){
+  #powloka{grid-template-columns:1fr}
+  #pasek{position:static;height:auto;flex-direction:row;overflow-x:auto}
+  #pasek nav{display:flex}
+  #pasek .grupa,#pasek .stopka{display:none}
+}
+</style>
+
+<!-- ════════ EKRAN PROFILU ════════ -->
+<div id="ekran-profilu">
+  <div class="karta-profilu">
+    <div class="godlo">§</div>
+    <h2 class="szeryf">kancelaria&#8209;lex</h2>
+    <div class="pod">System analizy akt sprawy.<br>
+      Pracuje w całości lokalnie — akta nie opuszczają tego komputera.</div>
+
+    <label for="pr-login">Login</label>
+    <input id="pr-login" placeholder="np. a.kowalska" autocomplete="username"
+           onkeydown="if(event.key==='Enter')zatwierdzProfil()">
+
+    <label for="pr-haslo">Hasło</label>
+    <input id="pr-haslo" type="password" placeholder="min. 10 znaków"
+           autocomplete="current-password"
+           onkeydown="if(event.key==='Enter')zatwierdzProfil()">
+
+    <!-- Kod z aplikacji. Pokazuje się dopiero, gdy serwer sprawdzi
+         hasło i stwierdzi, że profil ma włączony drugi składnik —
+         inaczej pole zdradzałoby, które konta go mają. -->
+    <div id="pole-kodu" style="display:none">
+      <label for="pr-kod">Kod z aplikacji (albo kod zapasowy)</label>
+      <input id="pr-kod" inputmode="numeric" autocomplete="one-time-code"
+             placeholder="6 cyfr" maxlength="12"
+             onkeydown="if(event.key==='Enter')zatwierdzProfil()">
+    </div>
+
+    <!-- Pola widoczne tylko przy zakładaniu profilu. -->
+    <div id="pola-rejestracji" style="display:none">
+      <label for="pr-imie">Imię</label>
+      <input id="pr-imie" placeholder="np. Anna" autocomplete="given-name">
+
+      <label for="pr-nazwisko">Nazwisko</label>
+      <input id="pr-nazwisko" placeholder="np. Kowalska" autocomplete="family-name">
+
+      <label for="pr-rola">Rola</label>
+      <select id="pr-rola">
+        <option value="prawnik">Prawnik prowadzący</option>
+        <option value="aplikant">Aplikant</option>
+        <option value="sekretariat">Sekretariat / asystent</option>
+      </select>
+
+      <!-- ⚠️ Oświadczenia o obowiązkach ciążących na KANCELARII.
+           Renderowane z /api/profil/zgody, nie z kopii w tym pliku —
+           i sprawdzane po stronie serwera, bo lista zaznaczeń z
+           przeglądarki jest danymi, nie dowodem.                     -->
+      <div id="blok-zgod" style="margin-top:1.3rem">
+        <div style="font-size:.78rem;font-weight:600;color:#475569;
+          text-transform:uppercase;letter-spacing:.04em;margin-bottom:.5rem">
+          Zanim zaczniesz — co bierzesz na siebie</div>
+        <div style="font-size:.8rem;color:#475569;line-height:1.5;
+          margin-bottom:.7rem">
+          System pracuje lokalnie i pilnuje cytatów, ale <b>części
+          obowiązków prawnych nie wykona za kancelarię żadne
+          oprogramowanie</b>. Poniższe punkty trzeba przeczytać
+          i potwierdzić — bez kompletu nie da się założyć profilu.
+        </div>
+        <div id="lista-zgod"></div>
+      </div>
+    </div>
+
+    <div id="pr-blad" style="display:none;margin-top:.8rem;padding:.55rem .7rem;
+      border-radius:5px;background:#fef2f2;color:#991b1b;font-size:.82rem"></div>
+
+    <button id="pr-przycisk" onclick="zatwierdzProfil()">Zaloguj się</button>
+
+    <div class="ostatnie-profile">
+      <a id="pr-przelacz" onclick="przelaczTrybProfilu()">Załóż nowy profil</a>
+    </div>
+
+    <!-- ⚠️ Uczciwość wobec użytkownika ma tu pierwszeństwo nad wrażeniem.
+         Do 16.08.2026 ten ekran BYŁ atrapą: zapisywał imię do pamięci
+         przeglądarki i się chował, a API stało otworem dla każdego, kto
+         pominął interfejs. Teraz logowanie jest sprawdzane po stronie
+         serwera, ale nadal ma granice i trzeba je napisać wprost.     -->
+    <div class="zastrzezenie">
+      <b>Drugi składnik jest dostępny, ale nie włącza się sam.</b> Hasło
+      jest sprawdzane przez serwer i zapisane jako skrót <code>scrypt</code>,
+      sesja wygasa po 12 godzinach, a seria nieudanych prób jest dławiona
+      rosnącą przerwą. <b>MFA (TOTP) włącza się w widoku „Kopie zapasowe"</b>
+      — dopóki tego nie zrobisz, logowanie pozostaje jednoskładnikowe
+      i wymóg z ustawy o KSC nie jest spełniony. Żadne z tego nie chroni
+      pliku bazy przed kimś, kto ma dostęp do dysku: do tego służy
+      szyfrowanie nośnika.
+    </div>
+  </div>
+</div>
+
+<div id="powloka">
+<aside id="pasek">
+  <div class="marka">
+    <div class="nazwa szeryf">kancelaria<span style="color:var(--zloto)">§</span>lex</div>
+    <div class="podtytul">analiza akt · lokalnie</div>
+  </div>
+  <nav>
+    <div class="grupa">Praca</div>
+    <a id="z-sprawy" class="aktywna" onclick="przelacz('sprawy')">
+      <span class="ikona">▤</span> Sprawy</a>
+    <a id="z-przepisy" onclick="przelacz('przepisy')">
+      <span class="ikona">§</span> Przepisy prawne</a>
+    <a id="z-terminy" onclick="przelacz('terminy')">
+      <span class="ikona">◲</span> Terminy procesowe</a>
+    <div class="grupa">System</div>
+    <a id="z-instrukcja" onclick="przelacz('instrukcja')">
+      <span class="ikona">?</span> Jak z tego korzystać</a>
+    <a id="z-dziennik" onclick="przelacz('dziennik')">
+      <span class="ikona">◷</span> Dziennik kontroli</a>
+    <a id="z-audyt" onclick="przelacz('audyt')">
+      <span class="ikona">⛓</span> Log audytowy</a>
+    <a id="z-kopie" onclick="przelacz('kopie')">
+      <span class="ikona">⎘</span> Kopie zapasowe</a>
+  </nav>
+  <div class="stopka">
+    <div class="kto" id="pasek-kto">—</div>
+    <div id="pasek-rola" style="margin:.1rem 0 .35rem"></div>
+    <a onclick="zmienProfil()">zmień profil</a>
+  </div>
+</aside>
+
+<div id="tresc">
+<div id="pasek-gorny">
+  <h1 class="szeryf" id="tytul-widoku">Sprawy</h1>
+  <span class="info">Materiał roboczy — każda analiza wymaga weryfikacji przez prawnika</span>
+</div>
+
+<!-- ════════ WIDOK: SPRAWY ════════ -->
+<div class="uklad" id="widok-sprawy">
+  <div class="kolumna">
+    <h2>Sprawy</h2>
+    <div id="lista-spraw"></div>
+    <details>
+      <summary>+ Nowa sprawa</summary>
+      <input id="p-sygnatura" placeholder="Sygnatura, np. II K 147/26">
+      <input id="p-nazwa" placeholder="Nazwa robocza sprawy">
+      <input id="p-organ" placeholder="Organ (sąd / prokuratura)">
+      <select id="p-rodzaj">
+        <option value="karna">karna</option><option value="cywilna">cywilna</option>
+        <option value="gospodarcza">gospodarcza</option>
+        <option value="administracyjna">administracyjna</option>
+        <option value="rodzinna">rodzinna</option>
+      </select>
+      <select id="p-poufnosc">
+        <option value="standardowa">poufność standardowa</option>
+        <option value="podwyzszona">poufność podwyższona</option>
+        <option value="obronczy">materiał obrończy</option>
+      </select>
+      <button class="glowny" onclick="dodajSprawe()">Utwórz sprawę</button>
+    </details>
+  </div>
+
+  <div class="kolumna">
+    <h2>Dokumenty sprawy</h2>
+    <div id="lista-dokumentow"><div class="pusto">Wybierz sprawę</div></div>
+<div id="podpowiedz-strategii"></div>
+    <details id="dodaj-dok" style="display:none">
+      <summary>+ Dodaj dokument do tej sprawy</summary>
+
+      <!-- Wgrywanie plików. Nazwa dokumentu bierze się z nazwy pliku,
+           więc tu nie ma pola na nią — jedno pole mniej do wypełnienia
+           przy wgrywaniu dwudziestu pism naraz. -->
+      <div id="upuszczalnia" class="upuszczalnia">
+        <b>Przeciągnij pliki tutaj</b><br>
+        <span class="opis">albo <a href="#" onclick="document.getElementById('d-pliki').click();return false">wybierz z dysku</a></span>
+        <div class="opis" style="margin-top:.35rem">
+          PDF · DOCX · TXT · RTF &nbsp;·&nbsp; można wiele naraz
+        </div>
+        <input type="file" id="d-pliki" multiple accept=".pdf,.docx,.txt,.md,.rtf"
+               style="display:none" onchange="wgrajPliki(this.files)">
+      </div>
+      <div id="wynik-wgrywania"></div>
+
+      <details style="margin:.5rem 0">
+        <summary>albo wklej treść ręcznie</summary>
+        <input id="d-nazwa" placeholder="Nazwa dokumentu">
+        <!-- ⚠️ Otwierający `<select>` zginął przy dodawaniu strefy
+             wgrywania plików: zostały same `<option>` i osierocone
+             `</select>`, które domykało `<details>`. Skutek nie był
+             kosmetyczny — `val('d-rodzaj')` nie miał czego odczytać,
+             więc ręczne wklejenie dokumentu wywracało się na `null`.
+             Przywrócone 16.08.2026. -->
+        <select id="d-rodzaj">
+        <option value="pismo">pismo procesowe</option>
+        <option value="protokol">protokół przesłuchania</option>
+        <option value="postanowienie">postanowienie</option>
+        <option value="wyrok">wyrok</option>
+        <option value="akt-oskarzenia">akt oskarżenia</option>
+        <option value="opinia">opinia biegłego</option>
+        <option value="inne">inne</option>
+      </select>
+        <textarea id="d-tresc" placeholder="Wklej treść dokumentu…"></textarea>
+        <button class="glowny" onclick="dodajDokument()">Dodaj do sprawy</button>
+      </details>
+
+      <div class="stopka">Dokument trafia wyłącznie do wybranej sprawy.
+        Skan bez warstwy tekstowej zostanie odrzucony — cytaty z takiego
+        pliku byłyby niewiarygodne.</div>
+    </details>
+  </div>
+
+  <div class="kolumna">
+    <h2>Analiza akt</h2>
+
+    <!-- ── Wątki ────────────────────────────────────────────────────
+         Rozmowa o dwóch różnych tropach w jednej sprawie mieszała się
+         dotąd w jednym ciągu. Wątek nazwany porządkuje to i pozwala
+         wrócić do rzeczy sprzed tygodnia bez przewijania.          -->
+    <div id="panel-watkow" style="display:none;margin-bottom:.7rem">
+      <div class="rzad" style="align-items:center;gap:.4rem">
+        <select id="wybor-watku" onchange="przelaczWatek(this.value)"
+                style="flex:1;margin:0"></select>
+        <button onclick="nowyWatek()" title="Nowy wątek">+ Wątek</button>
+        <button id="btn-zamknij-watek" onclick="przelacznikWatku()"
+                style="display:none"></button>
+      </div>
+      <div id="info-watku" class="stopka" style="margin-top:.3rem"></div>
+    </div>
+
+    <div id="zakres-info"></div>
+    <div id="postep-box"></div>
+    <div id="wynik"><div class="pusto">Wybierz sprawę, aby rozpocząć</div></div>
+    <div id="pole-pytania" style="display:none;margin-top:.8rem">
+      <textarea id="pytanie" style="min-height:64px"
+        placeholder="Zadaj pytanie do akt — np. „Czy zeznania świadków są spójne co do przebiegu zdarzenia?”"></textarea>
+      <div class="rzad">
+        <button class="glowny" id="btn-analizuj" onclick="analizuj()">Analizuj akta</button>
+        <label class="ptaszek"><input type="checkbox" id="uzyj-przepisow" checked>
+          uwzględnij przepisy</label>
+      </div>
+      <div class="stopka">
+        Analiza przebiega etapami: rozbicie pytania → przeszukanie akt →
+        ustalenia z każdego trafnego dokumentu → wnioski. Przy większej
+        liczbie dokumentów trwa dłużej — postęp widać powyżej.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ WIDOK: PRZEPISY ════════ -->
+<div class="uklad" id="widok-przepisy" style="display:none;grid-template-columns:1fr 1fr">
+  <div class="kolumna">
+    <h2>Korpus przepisów</h2>
+    <div id="lista-przepisow"></div>
+    <div class="stopka">
+      Przepisy są <b>jawne i wspólne dla wszystkich spraw</b> — nie należą
+      do żadnej z nich. Cytaty z przepisów są weryfikowane osobno od akt,
+      więc zdanie o prawie nie może zostać „potwierdzone” protokołem
+      przesłuchania.
+    </div>
+  </div>
+  <div class="kolumna">
+    <h2>Dodaj przepis</h2>
+    <div class="blad" style="background:var(--ostrzezenie-tlo);color:var(--ostrzezenie);
+         border-color:var(--ostrzezenie)">
+      Treść wklejaj z oficjalnego źródła. System celowo nie zawiera żadnych
+      przepisów „z pamięci modelu” — narzędzie do zwalczania halucynacji
+      nie może startować z tekstem ustawy odtworzonym przez model.
+    </div>
+    <input id="pr-akt" placeholder="Akt, np. Kodeks postępowania karnego">
+    <input id="pr-jednostka" placeholder="Jednostka, np. art. 445 § 1">
+    <textarea id="pr-tresc" placeholder="Dosłowna treść przepisu…"></textarea>
+    <input id="pr-zrodlo" placeholder="Źródło, np. Dz.U. 2026 poz. …">
+    <input id="pr-zweryfikowal" placeholder="Zweryfikował (imię i nazwisko)">
+    <button class="glowny" onclick="dodajPrzepis()">Dodaj do korpusu</button>
+  </div>
+</div>
+
+<!-- Podgląd cytatu w dokumencie źródłowym -->
+<!-- ════════ WIDOK: INSTRUKCJA ════════ -->
+<div id="widok-instrukcja" style="display:none">
+  <h2 class="szeryf">Jak wycisnąć z systemu maksimum</h2>
+  <p style="font-size:.95rem">Masz do dyspozycji narzędzie, które czyta akta
+  sprawy i odpowiada <b>wyłącznie na podstawie tego, co w nich stoi</b> —
+  a każde zdanie odpowiedzi prowadzi do konkretnego miejsca w dokumencie,
+  co do znaku.</p>
+
+  <div class="kafel" style="border-left-color:var(--ok);background:var(--ok-tlo)">
+    <b>Zmierzone wyniki</b> — akta rzeczywistej objętości (722 dokumenty,
+    sprawa polska i angielska), pomiar z 16.08.2026 na konfiguracji
+    wysyłkowej. Dwie kolumny, bo
+    <b>to Ty decydujesz, w której pracujesz</b>: zaznaczenie jednego
+    dokumentu daje pierwszą, pytanie o całą sprawę — drugą.
+    <table style="margin:.7rem 0 .2rem">
+      <tr><th></th>
+          <th>1 zaznaczony<br>dokument</th>
+          <th>cała sprawa<br>(100 pytań)</th></tr>
+      <tr><td>Trafność cytatu</td>
+          <td><b>8 na 8</b></td><td><b>80%</b></td></tr>
+      <tr><td>Poprawna odmowa przy braku podstawy</td>
+          <td><b>8 na 8</b></td><td><b>82%</b></td></tr>
+      <tr><td>Cytatów niezgodnych ze źródłem</td>
+          <td><b>0</b></td><td><b>0</b></td></tr>
+      <tr><td>Czas odpowiedzi (mediana)</td>
+          <td><b>ok. 5 s</b></td><td><b>ok. 12 s</b></td></tr>
+    </table>
+    <div style="font-size:.8rem;margin-top:.5rem;line-height:1.5">
+      <b>Zero w trzecim wierszu jest tu najważniejsze.</b> Cytat
+      niezgodny ze źródłem nie zdarzył się ani razu w żadnym z pomiarów
+      i nie jest to kwestia szczęścia: model wskazuje numer zdania,
+      a treść cytatu odtwarza kod prosto z dokumentu.
+    </div>
+  </div>
+
+  <div class="kafel uwaga">
+    <b>Czego te liczby nie mówią — i co z tego wynika dla Ciebie.</b>
+    <ul style="margin:.5rem 0 0;padding-left:1.1rem">
+      <li><b>82% to nie jest dobra liczba i nie udajemy, że jest.</b>
+        Na pytania, na które akta nie dają odpowiedzi, system w blisko
+        jednym przypadku na pięć mimo to coś odpowiada — z cytatem
+        prawdziwym, ale niepopierającym tezy. W ostatnim pomiarze było
+        to <b>9 odpowiedzi na 50 takich pytań</b>. Dlatego <b>cytat
+        trzeba kliknąć</b>. To jedna sekunda i zamyka całą tę kategorię
+        błędu.</li>
+      <li><b>Mediana to nie maksimum.</b> Co dziesiąte pytanie o całą
+        sprawę trwa ponad dwie minuty: system nie znalazł odpowiedzi
+        w pierwszym podejściu i czyta akta dokument po dokumencie.
+        Zwykle wtedy trafia — ale zaznaczenie właściwego dokumentu
+        daje ten sam wynik w kilka sekund.</li>
+      <li><b>Akta angielskie wypadają słabiej niż polskie.</b> Trzy
+        czwarte odpowiedzi bez pokrycia dotyczyło sprawy angielskiej.
+        Przy aktach obcojęzycznych warto zawężać do dokumentu
+        i sprawdzać cytaty uważniej.</li>
+    </ul>
+  </div>
+
+  <h3>Trzy rzeczy, których nie zrobi żadne inne narzędzie</h3>
+
+  <div class="kafel">
+    <b>1. Cytat prowadzi do znaku, nie do pliku.</b><br>
+    Kliknij w dowolny cytat — otworzy się dokument źródłowy z podświetlonym
+    fragmentem, przewinięty we właściwe miejsce. Nie „źródło: dok. 3, s. 12",
+    tylko <b>dokładnie to zdanie</b>. Weryfikacja zajmuje sekundę zamiast
+    kwadransa.
+  </div>
+
+  <div class="kafel">
+    <b>2. Cytatu nie da się zmyślić.</b><br>
+    Treść cytatu odtwarza kod prosto z dokumentu — model wskazuje wyłącznie
+    numer zdania i fizycznie nie ma jak przekręcić ani jednego znaku.
+    W pomiarach: <b>zero cytatów niezgodnych ze źródłem</b>. Dla porównania,
+    badanie Uniwersytetu Stanforda wykazało 17–34% zmyślonych powołań
+    w wiodących komercyjnych narzędziach prawniczych.
+  </div>
+
+  <div class="kafel">
+    <b>3. Akta nie opuszczają tego komputera. Nigdy.</b><br>
+    Model, wyszukiwanie i weryfikacja działają w całości na tym urządzeniu.
+    System nie ma funkcji wysyłania czegokolwiek na zewnątrz — nie dlatego,
+    że jest wyłączona, tylko dlatego, że <b>jej nie ma w kodzie</b>.
+  </div>
+
+  <div class="kafel" style="border-left-color:var(--ok);background:var(--ok-tlo)">
+    <b>Co to daje kancelarii</b>
+    <table style="margin:.7rem 0 .2rem">
+      <tr><td><b>Tajemnica zawodowa</b></td>
+          <td>Zachowana bez polegania na czyjejkolwiek umowie powierzenia.
+          Sam fakt prowadzenia sprawy też nie wycieka — metadane zostają
+          na miejscu.</td></tr>
+      <tr><td><b>Tajemnica obrończa</b></td>
+          <td>Materiał, którego nie może ujawnić żadna procedura prawna
+          (art. 178 pkt 1 k.p.k.), nie trafia do żadnego zewnętrznego
+          systemu.</td></tr>
+      <tr><td><b>RODO</b></td>
+          <td>Brak przekazania danych osobowych podmiotowi zewnętrznemu
+          i brak transferu poza EOG — bo nie ma żadnego transferu.</td></tr>
+      <tr><td><b>Praca bez sieci</b></td>
+          <td>Działa z odłączonym internetem. Awaria łącza nie zatrzymuje
+          pracy nad aktami.</td></tr>
+    </table>
+  </div>
+
+  <h3>Zgodność z AI Act i KSC (NIS2) — punkt po punkcie</h3>
+
+  <div class="kafel" style="border-left-color:var(--ok);background:var(--ok-tlo)">
+    <b>Punkt wyjścia dla wszystkiego poniżej: system jest w 100% lokalny.</b><br>
+    Model językowy, wyszukiwanie, weryfikacja cytatów, baza akt i log
+    audytowy działają w całości na tym urządzeniu.
+    <b>Żadne dane nie wychodzą poza to urządzenie</b> — ani treść akt, ani
+    fragment, ani zapytanie, ani metadane, ani statystyka użycia.
+    <ul style="margin:.6rem 0 0;padding-left:1.1rem">
+      <li><b>Brak kodu, który mógłby wysłać.</b> W aplikacji nie ma SDK
+        żadnego dostawcy chmurowego ani telemetrii. To nie jest funkcja
+        wyłączona przełącznikiem — jej nie ma w kodzie.</li>
+      <li><b>Jedno połączenie, przypięte na stałe.</b> Agent łączy się
+        wyłącznie z modelem pod adresem pętli zwrotnej
+        <code>127.0.0.1</code>. Adres jest w kodzie, nie w konfiguracji —
+        nie da się go zmienić z interfejsu.</li>
+      <li><b>Brak funkcji pobierania.</b> System nie ściąga modeli, wag,
+        aktualizacji ani orzecznictwa w czasie pracy. Aktualizacje wnosi
+        się paczką offline w oknie serwisowym.</li>
+      <li><b>Sieć bez trasy na zewnątrz.</b> Cztery segmenty, trzy bez
+        trasy do internetu. Nawet przy błędzie w kodzie pakiet nie ma
+        dokąd pójść.</li>
+      <li><b>Działa z wyciągniętą wtyczką.</b> Odłączenie internetu nie
+        zmienia niczego w działaniu — najprostszy dowód, jaki można
+        pokazać klientowi lub audytorowi.</li>
+    </ul>
+  </div>
+
+  <h4 style="margin:1.2rem 0 .3rem;font-size:.9rem">AI Act — rozporządzenie UE 2024/1689</h4>
+  <table>
+    <tr><th style="width:34%">Wymóg</th><th>Jak jest spełniony</th></tr>
+    <tr><td><b>Rola kancelarii</b></td>
+        <td><b>Podmiot stosujący (deployer)</b>, nie dostawca. System jest
+        używany wewnętrznie, nie wprowadza się go do obrotu ani nie
+        udostępnia pod własną marką. Model nie jest dostrajany, więc
+        kancelaria nie przechodzi do roli dostawcy.</td></tr>
+    <tr><td><b>Wysokie ryzyko<br>(Zał. III pkt 8 lit. a)</b></td>
+        <td><b>Nie dotyczy.</b> Przepis obejmuje systemy używane przez organ
+        wymiaru sprawiedliwości lub w jego imieniu. Kancelaria jest
+        pełnomocnikiem strony — narzędzie wspiera pracę własną prawnika,
+        nie orzekanie. Wynik jest materiałem roboczym bez automatycznego
+        skutku prawnego.</td></tr>
+    <tr><td><b>Praktyki zakazane<br>(art. 5)</b></td>
+        <td><b>Nie występują</b> — weryfikacja negatywna: brak punktowej
+        oceny społecznej, brak rozpoznawania emocji, brak identyfikacji
+        biometrycznej, brak przewidywania przestępstwa na podstawie
+        profilowania osoby. Wskazywanie rozbieżności zawsze podaje cytaty
+        i nie ocenia wiarygodności osoby.</td></tr>
+    <tr><td><b>Kompetencje AI<br>(art. 4)</b></td>
+        <td><b>Stosuje się — i jest to obowiązek kancelarii.</b> Personel
+        musi znać ograniczenia modeli językowych, skłonność do halucynacji
+        i granice weryfikacji maszynowej. Program szkoleń jest wspólny
+        z obowiązkiem szkoleniowym z KSC.</td></tr>
+    <tr><td><b>Przejrzystość</b></td>
+        <td>Użytkownik wie, że pracuje z systemem AI. Przy każdym
+        twierdzeniu widzi źródło z dokładnością do znaku oraz osobną
+        sekcję z tym, co system <b>odrzucił i dlaczego</b>.</td></tr>
+    <tr><td><b>Nadzór człowieka</b></td>
+        <td>Nie jest formalnością, tylko warunkiem użycia: system wydobywa
+        fakty i wskazuje rozbieżności, rozstrzyga prawnik. Odpowiedzialność
+        zawodowa zostaje przy prawniku.</td></tr>
+    <tr><td><b>Model ogólnego<br>przeznaczenia (GPAI)</b></td>
+        <td>Obowiązki dostawcy GPAI ciążą na twórcy modelu, nie na
+        kancelarii. Wagi są pobierane raz, poza systemem, i uruchamiane
+        lokalnie.</td></tr>
+    <tr><td><b>Ocena zgodności,<br>oznakowanie CE, rejestracja</b></td>
+        <td>Nie dotyczą przy powyższej kwalifikacji.</td></tr>
+  </table>
+
+  <h4 style="margin:1.2rem 0 .3rem;font-size:.9rem">KSC / NIS2 — art. 21 ust. 2 dyrektywy 2022/2555, ustawa Dz.U. 2026 poz. 252</h4>
+  <p style="font-size:.85rem">Architektura jest budowana do poziomu dziesięciu
+  środków technicznych, do których odsyła ustawa — niezależnie od wyniku oceny
+  podmiotowej, bo kancelaria obsługująca bank, szpital czy operatora dostaje
+  te wymagania kontraktowo, jako dostawca podmiotu kluczowego
+  (art. 21 ust. 2 lit. d).</p>
+
+  <div class="kafel uwaga">
+    <b>Kolumna „stan" mówi, co jest ZBUDOWANE, a co ZAPROJEKTOWANE.</b>
+    Ta różnica jest dla audytora istotniejsza niż sama lista wymogów.
+    <b>Wdrożone</b> — działa w kodzie i jest pokryte testem wykonywalnym.
+    <b>Dokument</b> — procedura opisana i gotowa, ale nieprzećwiczona;
+    dowodem jest dopiero wykonanie.
+    <b>Planowane</b> — jeszcze nie działa, i <b>nie wolno się na to
+    powoływać</b> wobec klienta ani regulatora.
+    Stan na 16.08.2026.
+  </div>
+
+  <table>
+    <tr><th style="width:28%">Wymóg art. 21 ust. 2</th><th>Realizacja</th>
+        <th style="width:15%">Stan</th></tr>
+    <tr><td><b>a)</b> analiza ryzyka i polityki bezpieczeństwa</td>
+        <td>Model zagrożeń STRIDE i rejestr ryzyk prowadzony jako dokument
+        żywy, aktualizowany przy każdej zmianie architektury.</td>
+        <td>Dokument</td></tr>
+    <tr><td><b>b)</b> obsługa incydentów</td>
+        <td>Runbook z terminami 24 h / 72 h, wyznaczonymi rolami i ścieżką
+        decyzyjną. Zgłoszenie opisuje zakres i charakter zdarzenia — nigdy
+        treść objętą tajemnicą. <b>Nieprzećwiczony.</b></td>
+        <td>Dokument</td></tr>
+    <tr><td><b>c)</b> ciągłość działania i kopie zapasowe</td>
+        <td>Kopia zdejmowana z panelu i sprawdzana odczytem po zapisie.
+        <b>Odtworzenie dostępne z panelu</b> — z przepisaniem nazwy pliku
+        jako potwierdzeniem, wyłącznie dla prawnika prowadzącego;
+        poprzednia baza jest odkładana, więc pomyłka jest odwracalna.
+        Deklarowane RPO i RTO pozostają <b>założeniem do czasu
+        pierwszego ćwiczenia na docelowej maszynie</b>.</td>
+        <td>Częściowo</td></tr>
+    <tr><td><b>d)</b> bezpieczeństwo łańcucha dostaw</td>
+        <td>Panel korzysta wyłącznie z biblioteki standardowej Pythona —
+        <b>łańcuch dostaw aplikacji jest pusty</b>, więc nie ma czego
+        kompromitować. <b>Wszystkie osiem obrazów przypiętych sumą
+        <code>sha256</code></b> (16.08.2026): tag może po każdym pobraniu
+        wskazać inną treść, suma nie może. Bramka I-8 pilnuje tego przy
+        każdej zmianie.</td>
+        <td>Wdrożone</td></tr>
+    <tr><td><b>e)</b> bezpieczne nabywanie i rozwój, podatności</td>
+        <td>Bramka CI na pliku blokad, SBOM, okno serwisowe na łatki,
+        przegląd podatności przed wniesieniem paczki.</td>
+        <td>Planowane</td></tr>
+    <tr><td><b>f)</b> ocena skuteczności środków</td>
+        <td><b>Spełnione mocniej niż typowo.</b> Zwykle oznacza to okresowy
+        przegląd dokumentacji. Tutaj adres modelu przechodzi przez
+        strażnika, który <b>zatrzymuje uruchomienie</b> przy adresie
+        spoza tego urządzenia, a osobny test skanuje kod, czy nikt nie
+        dopisał drugiego wyjścia obok niego.<br>
+        <b>Przechwycenie ruchu wykonane 16.08.2026:</b> kontener
+        wewnątrz każdego z trzech segmentów aktywnie próbował wyjść na
+        zewnątrz — HTTP po nazwie, HTTP po adresie IP, zapytanie DNS
+        i ping. <b>Zero pakietów opuściło segment.</b> Dowód nie jest
+        przeglądem konfiguracji, tylko obserwacją na poziomie pakietów.</td>
+        <td>Wdrożone</td></tr>
+    <tr><td><b>g)</b> cyberhigiena i szkolenia</td>
+        <td>Program szkoleń wspólny z art. 4 AI Act, wraz z obowiązkowym
+        szkoleniem kierownictwa wynikającym z nowelizacji.</td>
+        <td>Planowane</td></tr>
+    <tr><td><b>h)</b> kryptografia i szyfrowanie</td>
+        <td>Szyfrowanie nośnika roboczego jest zadaniem kancelarii i nie
+        zostało potwierdzone. <b>mTLS między segmentami nie jest
+        wdrożony</b> — segmenty są odseparowane brakiem trasy, nie
+        szyfrowaniem wzajemnym.</td>
+        <td>Planowane</td></tr>
+    <tr><td><b>i)</b> kontrola dostępu i zarządzanie aktywami</td>
+        <td>Dostęp imienny: logowanie, sesja po stronie serwera, autor
+        przy każdym pytaniu w dzienniku audytu. Rozdzielenie danych
+        między sprawami wymuszone w kodzie — agent dostaje dokumenty
+        jednej sprawy i nic poza nimi, a wątek z cudzej sprawy jest
+        nieodróżnialny od nieistniejącego. Odtworzenie bazy zastrzeżone
+        dla roli prawnika. <b>Sprawdzone także przy pracy równoległej
+        kilku osób.</b></td>
+        <td>Wdrożone</td></tr>
+    <tr><td><b>j)</b> uwierzytelnianie wieloskładnikowe</td>
+        <td><b>Dostępne, włączane przez użytkownika.</b> Hasło (skrót
+        <code>scrypt</code>, sesja po stronie serwera, dławienie serii
+        nieudanych prób) oraz drugi składnik <b>TOTP</b> zgodny z RFC 6238,
+        z jednorazowymi kodami zapasowymi. Kod liczy aplikacja w telefonie
+        — bez wymiany czegokolwiek przez sieć, więc działa przy odłączonym
+        internecie.
+        <br><b>⚠️ Wymóg spełniony tylko tam, gdzie MFA faktycznie
+        włączono</b>, i tylko gdy aplikacja stoi na telefonie, a nie na
+        tym samym komputerze. Sprawdzenie tego należy do kancelarii.</td>
+        <td>Tak</td></tr>
+  </table>
+
+  <p style="font-size:.85rem"><b>Ponad wymagany zakres:</b> log audytowy
+  z łańcuchem sum kontrolnych — usunięcie lub podmiana wpisu w środku
+  łańcucha jest wykrywalna, co czyni go materiałem dowodowym należytej
+  staranności. Dziennik kontroli jakości zapisuje wyłącznie liczby
+  i skróty, żeby sam nie stał się drugim zbiorem objętym tajemnicą.</p>
+
+  <div class="kafel" style="border-left-color:var(--ok);background:var(--ok-tlo)">
+    <b>Dlaczego lokalność załatwia tu najwięcej naraz.</b> Większość
+    wymagań obu regulacji dotyczy tego, co dzieje się z danymi, gdy
+    opuszczają organizację: transfery, umowy powierzenia, ocena dostawcy,
+    ryzyko łańcucha dostaw, kontrola nad podprzetwarzającymi.
+    <b>Tutaj żaden z tych scenariuszy nie zachodzi</b>, bo dane nigdy nie
+    opuszczają urządzenia. Zamiast zabezpieczać transfer umową — nie ma
+    transferu. To najmocniejszy z możliwych sposobów spełnienia wymogu:
+    nie kontrola nad ryzykiem, tylko jego brak.
+  </div>
+
+  <div class="kafel uwaga">
+    <b>Co należy do kancelarii, nie do systemu.</b> Powyższe opisuje to,
+    czego przepisy wymagają <b>od systemu</b> — i to jest spełnione.
+    Osobno stoi to, czego wymagają <b>od podmiotu</b>, a czego żadne
+    oprogramowanie nie wykona za kancelarię:
+    <ul style="margin:.5rem 0 0;padding-left:1.1rem">
+      <li>ocena podmiotowa, czy kancelaria podlega ustawie o KSC —
+        <b>termin 15.09.2026</b>;</li>
+      <li>wpis do wykazu, jeśli podlega — <b>termin 2.10.2026</b>
+        (obowiązuje samoidentyfikacja: podmiot sam ocenia i sam się
+        rejestruje);</li>
+      <li>potwierdzenie kwalifikacji w AI Act przez prawnika kancelarii —
+        kwalifikację determinuje faktyczny sposób użycia, nie deklaracja
+        w dokumentacji;</li>
+      <li>zatwierdzenie oceny skutków dla ochrony danych przez IOD
+        i szyfrowanie nośnika roboczego;</li>
+      <li>szkolenie personelu i kierownictwa.</li>
+    </ul>
+    Architektura je wspiera i dostarcza dowodów, ale nie zastępuje
+    formalnego kroku. Stan prawny na 15.08.2026 — przepisy są w fazie
+    wdrożeniowej, aktualność sprawdzić przed decyzją.
+  </div>
+
+  <h3>Wersja, źródło i odpowiedzialność</h3>
+
+  <div class="kafel" style="border-left-color:var(--ok);background:var(--ok-tlo)">
+    <b>To, czego nie potrafi żadne rozwiązanie chmurowe: nic tu nie wychodzi
+    na zewnątrz — i to jest jednocześnie najmocniejszy wynik pomiarowy.</b>
+    <table style="margin:.7rem 0 .2rem">
+      <tr><td><b>Cytatów niezgodnych ze źródłem</b></td>
+          <td><b>0</b> — w każdym przeprowadzonym pomiarze, bez wyjątku.
+          Wiodące komercyjne narzędzia prawnicze badane przez Uniwersytet
+          Stanforda miały <b>17–34% zmyślonych powołań</b>.</td></tr>
+      <tr><td><b>Trafność przy jednym dokumencie</b></td>
+          <td><b>8 na 8</b> — przy wskazaniu konkretnego pisma system
+          trafiał w komplet, w około 5 sekund.</td></tr>
+      <tr><td><b>Danych wysłanych na zewnątrz</b></td>
+          <td><b>0 bajtów.</b> Nie dlatego, że wyłączyliśmy wysyłanie —
+          dlatego, że w aplikacji nie ma kodu, który mógłby je wysłać,
+          a sieć nie ma trasy na zewnątrz.</td></tr>
+    </table>
+    <div style="font-size:.8rem;margin-top:.5rem;line-height:1.5">
+      Model działający lokalnie na jednym komputerze nie dorówna
+      największym modelom chmurowym w swobodnej rozmowie. Ale w zadaniu,
+      które ma tu znaczenie — <b>wskazać miejsce w aktach i nie zmyślić
+      cytatu</b> — wynik jest lepszy od komercyjnych narzędzi, a akta
+      przy tym nie opuszczają biurka.
+    </div>
+  </div>
+
+  <table>
+    <tr><th style="width:26%">Wersja</th>
+        <th>Jedyne oficjalne źródło</th></tr>
+    <tr><td><b>Projekt</b></td>
+        <td><b>AI4CharityPL</b> — narzędzia AI udostępniane na licencji MIT.
+        Konto: <a href="https://github.com/AI4CharityPL"
+        target="_blank" rel="noopener noreferrer">github.com/AI4CharityPL</a></td></tr>
+    <tr><td><b>Aktualność</b></td>
+        <td>Za aktualną uznaje się <b>wyłącznie</b> wersję opublikowaną
+        pod powyższym adresem. Kopia otrzymana inną drogą — mailem, na
+        nośniku, od pośrednika — nie jest wersją oficjalną i nie wiadomo,
+        co w niej zmieniono.</td></tr>
+  </table>
+
+  <div class="kafel uwaga">
+    <b>Zakres odpowiedzialności twórców.</b>
+    <ul style="margin:.5rem 0 0;padding-left:1.1rem">
+      <li>Oprogramowanie udostępniane jest <b>w stanie, w jakim jest</b>
+        („AS IS"), bez gwarancji przydatności do określonego celu.</li>
+      <li>Twórcy <b>nie odpowiadają za skutki nieprawidłowego użycia</b> —
+        w szczególności za wykorzystanie odpowiedzi systemu bez
+        sprawdzenia cytatu, wbrew oświadczeniom przyjętym przy zakładaniu
+        profilu.</li>
+      <li>Twórcy <b>nie odpowiadają za wersje zmodyfikowane</b> przez osoby
+        trzecie ani za kopie pochodzące spoza oficjalnego źródła.
+        Zmiana kodu może usunąć właśnie te zabezpieczenia, na których
+        opiera się cała powyższa argumentacja — izolację sieciową
+        i weryfikację cytatu.</li>
+      <li>Twórcy <b>nie odpowiadają za wypełnienie obowiązków
+        podmiotowych</b> kancelarii: oceny KSC, rejestracji, zatwierdzenia
+        oceny skutków dla ochrony danych, szyfrowania nośnika ani
+        szkolenia personelu.</li>
+      <li>Odpowiedzialność zawodowa za treść pism i opinii pozostaje
+        <b>wyłącznie po stronie prawnika</b>, który je podpisuje.</li>
+    </ul>
+  </div>
+
+  <h3>Sekret najlepszych wyników: zaznacz mniej</h3>
+  <p>To jedna z niewielu sytuacji, w których <b>mniej pracy daje lepszy
+  efekt</b>. Wskazanie konkretnego dokumentu zamiast całej sprawy daje
+  odpowiedź czterokrotnie trafniejszą i czterokrotnie szybszą:</p>
+  <table>
+    <tr><th>Zaznaczone</th><th>Trafność</th><th>Czas</th></tr>
+    <tr><td><b>1 dokument</b></td><td><b>8 na 9</b> ★</td><td><b>~5 s</b></td></tr>
+    <tr><td>4 dokumenty</td><td>4 na 9</td><td>~13 s</td></tr>
+    <tr><td>cała sprawa</td><td>2 na 9</td><td>~19 s</td></tr>
+  </table>
+  <p>Wiesz, że rzecz jest w opinii biegłego? Zaznacz tylko ją — dostaniesz
+  najlepszy wynik, jaki system potrafi dać. Panel podpowiada przewidywany
+  czas przy każdym zaznaczeniu.</p>
+
+  <h3>Odmowa to dowód, że system pracuje</h3>
+  <p>Komunikat „w aktach nie ma podstawy do odpowiedzi" znaczy, że system
+  sprawdził akta i <b>nie dał się skusić na zmyślenie</b>. W pomiarach
+  rozpoznaje takie pytania w <b>100% przypadków</b> — i to jest ta funkcja,
+  na której najbardziej zależy w sprawie karnej. Narzędzie, które zawsze
+  coś odpowiada, jest bezużyteczne; to odpowiada tylko wtedy, gdy ma na
+  czym się oprzeć.</p>
+
+  <h3>Pełna przejrzystość rozumowania</h3>
+  <p>Sekcja <b>odrzucone</b> pokazuje, co system odsiał i dlaczego — łącznie
+  z twierdzeniami, które brzmiały wiarygodnie, a nie miały pokrycia. Widzisz
+  nie tylko wynik, ale i to, co po drodze odpadło. Żadne inne narzędzie tej
+  klasy tego nie pokazuje.</p>
+
+  <h3>Przepisy — osobna, czysta przestrzeń</h3>
+  <p>Cytat z akt i cytat z przepisu są weryfikowane niezależnie i nigdy się
+  nie mieszają. Treść przepisów wprowadza kancelaria z oficjalnego źródła,
+  więc masz pewność, że system nie „pamięta" nieaktualnego brzmienia.</p>
+
+  <h3>Gdy chcesz mieć absolutną pewność</h3>
+  <ol>
+    <li>Kliknij w cytat — sprawdzisz zdanie w kontekście w jedną sekundę.</li>
+    <li>Zajrzyj do <b>odrzuconych</b> — zobaczysz, co system rozważył i odsiał.</li>
+    <li>Zawęź do jednego dokumentu i zapytaj ponownie — najwyższa trafność.</li>
+  </ol>
+
+  <div class="kafel uwaga">
+    <b>Zakres roli systemu.</b> Wynik jest <b>materiałem roboczym prawnika</b> —
+    tak jak notatka aplikanta czy wypis z akt. System wydobywa fakty i wskazuje
+    rozbieżności; nie ocenia wiarygodności osób, nie przewiduje rozstrzygnięcia
+    i nie formułuje kwalifikacji prawnej. Ta granica jest zamierzona: dzięki niej
+    narzędzie pozostaje poza kategorią wysokiego ryzyka AI Act, a odpowiedzialność
+    zawodowa zostaje tam, gdzie jej miejsce — przy prawniku.
+  </div>
+</div>
+
+<!-- ════════ WIDOK: KOPIE ZAPASOWE ════════ -->
+<div id="widok-kopie" style="display:none;padding:1.6rem 2rem">
+  <h2 class="szeryf">Kopie zapasowe</h2>
+  <p style="font-size:.86rem;color:var(--przygaszony);max-width:760px;line-height:1.6">
+    <b>Kopia jest sprawdzana odczytem, nie tylko zapisywana.</b> Po zdjęciu
+    plik zostaje otwarty jako osobna baza, sprawdzony pod kątem spójności
+    i porównany z oryginałem co do liczby spraw, dokumentów i wpisów audytu.
+    Niepowodzenie kasuje plik — kopia, o której wiadomo, że jest zła, nie
+    może leżeć w katalogu i udawać dobrej. Najczęstszy sposób utraty akt to
+    nie brak kopii, tylko kopia okazująca się nieczytelna w dniu awarii.</p>
+
+  <div class="kafel" style="max-width:760px">
+    <button class="glowny" id="btn-kopia" onclick="zrobKopie()">Zdejmij kopię teraz</button>
+    <span class="opis" style="margin-left:.6rem;font-size:.8rem;color:var(--przygaszony)">
+      katalog: <code id="katalog-kopii"></code></span>
+    <div id="stan-kopii" style="margin-top:.7rem"></div>
+  </div>
+
+  <div class="kafel uwaga" style="max-width:760px">
+    <b>Co należy do kancelarii.</b>
+    <ul style="margin:.5rem 0 0;padding-left:1.1rem">
+      <li><b>Kopia zawiera całe akta i nie jest szyfrowana przez aplikację.</b>
+        Musi trafić na zaszyfrowany nośnik — plik kopii jest tak samo
+        wrażliwy jak sama baza.</li>
+      <li><b>Kopia na tym samym dysku nie chroni przed awarią dysku.</b>
+        Przeniesienie na nośnik zewnętrzny jest osobną czynnością.</li>
+      <li><b>Odtworzenie jest ćwiczone testem</b>
+        (<code>tests/test_kopia.py</code>), ale na maszynie docelowej
+        należy je przeprowadzić raz przed pierwszą sprawą — deklarowane
+        RPO ≤ 24 h i RTO ≤ 8 h są dopiero wtedy zmierzone, a nie założone.</li>
+    </ul>
+  </div>
+
+  <h3>Zdjęte kopie</h3>
+  <div id="lista-kopii" style="max-width:760px">Wczytuję…</div>
+
+  <h3>Drugi składnik logowania (MFA)</h3>
+  <p style="font-size:.86rem;color:var(--przygaszony);max-width:760px;line-height:1.6">
+    Art. 21 ust. 2 lit. j ustawy o KSC wymaga uwierzytelniania
+    <b>wieloskładnikowego</b>. Kod liczy aplikacja w telefonie — ten sam
+    algorytm co panel, każde z osobna, <b>bez wymiany czegokolwiek przez
+    sieć</b>. Działa przy wyciągniętej wtyczce, tak jak reszta systemu.</p>
+  <div id="stan-mfa" style="max-width:760px">Wczytuję…</div>
+</div>
+
+<!-- ════════ WIDOK: TERMINY PROCESOWE ════════ -->
+<div id="widok-terminy" style="display:none;padding:1.6rem 2rem">
+  <h2 class="szeryf">Terminy procesowe</h2>
+  <p style="font-size:.86rem;color:var(--przygaszony);max-width:760px;line-height:1.6">
+    <b>Termin liczy kod, nie model.</b> Podajesz zdarzenie i jego datę,
+    resztę robi arytmetyka na regułach z pliku — ta sama data przy każdym
+    wywołaniu, z podstawą prawną do sprawdzenia. To jedyna funkcja tego
+    systemu, z której model językowy jest celowo wyłączony: przeoczony
+    termin oznacza utratę środka zaskarżenia, więc nie ma tu miejsca na
+    cokolwiek, co bywa różne przy dwóch zapytaniach.</p>
+
+  <div class="kafel" style="max-width:760px">
+    <div style="display:grid;grid-template-columns:1fr 170px auto;gap:.6rem;
+                align-items:end">
+      <div>
+        <label style="font-size:.78rem;color:var(--przygaszony)">Zdarzenie i podstawa</label>
+        <select id="t-regula"></select>
+      </div>
+      <div>
+        <label style="font-size:.78rem;color:var(--przygaszony)">Data zdarzenia</label>
+        <input type="date" id="t-data">
+      </div>
+      <button class="glowny" onclick="policzTermin()">Policz termin</button>
+    </div>
+    <div class="stopka" style="margin-top:.5rem">
+      Datę zdarzenia wpisuje prawnik. Dzień wolny na końcu terminu jest
+      przesuwany na następny roboczy — święta ruchome (Boże Ciało,
+      Poniedziałek Wielkanocny) są wyliczane, nie wpisywane ręcznie.
+    </div>
+  </div>
+
+  <div id="wynik-terminu" style="max-width:760px;margin-top:.8rem"></div>
+
+  <h3>Katalog reguł</h3>
+  <div id="lista-regul" style="max-width:760px">Wczytuję…</div>
+</div>
+
+<!-- ════════ WIDOK: DZIENNIK ════════ -->
+<div id="widok-dziennik" style="display:none;padding:1.6rem 2rem">
+  <h2 class="szeryf">Dziennik kontroli</h2>
+  <p style="font-size:.86rem;color:var(--przygaszony);max-width:720px;line-height:1.6">
+    Rozkład jakości odpowiedzi w czasie. Pozwala zauważyć pogorszenie po
+    zmianie modelu, zanim zdąży zaszkodzić. <b>Nie zawiera treści akt ani
+    pytań</b> — wyłącznie liczby i skróty, żeby sam dziennik nie stał się
+    drugim zbiorem objętym tajemnicą.</p>
+  <div id="tresc-dziennika">Wczytuję…</div>
+</div>
+
+<!-- ════════ WIDOK: AUDYT ════════ -->
+<div id="widok-audyt" style="display:none;padding:1.6rem 2rem">
+  <h2 class="szeryf">Log audytowy</h2>
+  <p style="font-size:.86rem;color:var(--przygaszony);max-width:720px;line-height:1.6">
+    Zapis operacji z łańcuchem sum kontrolnych. Usunięcie lub podmiana
+    wpisu w środku łańcucha jest wykrywalna.</p>
+  <div id="tresc-audytu">Wczytuję…</div>
+</div>
+
+</div><!-- /tresc -->
+</div><!-- /powloka -->
+
+<div id="zaslona" onclick="if(event.target===this)zamknijPodglad()">
+  <div id="podglad">
+    <header>
+      <span class="tytul" id="tytul-podgladu"></span>
+      <button onclick="zamknijPodglad()" title="Zamknij (Esc)">×</button>
+    </header>
+    <div id="tresc-dokumentu"></div>
+  </div>
+</div>
+
+<script>
+let sprawaAktywna=null, dokumentAktywny=null, sondowanie=null;
+/* Dokumenty zaznaczone kwadracikiem — wybór PRAWNIKA, którego system
+   nie zawęża po swojemu (agent._zawez_dokumenty, wybor_uzytkownika). */
+let zaznaczone = new Set(), dokumentyWszystkie = [];
+
+const api=async(s,o={})=>{
+  const r=await fetch(s,{headers:{'Content-Type':'application/json; charset=utf-8'},...o});
+  const d=await r.json().catch(()=>({}));
+  /* Sesja wygasła albo jej nie ma — wracamy na ekran logowania zamiast
+     pokazywać w kółko „Błąd 401". Serwer odmawia niezależnie od tego,
+     co zrobi przeglądarka; to jest wyłącznie uprzejmość wobec
+     użytkownika, a nie zabezpieczenie.                                */
+  if(r.status===401&&d.wymaga_logowania){
+    profil=null;
+    document.getElementById('ekran-profilu')?.classList.remove('schowany');
+    bladProfilu('Sesja wygasła. Zaloguj się ponownie.');
+    return {blad:'Sesja wygasła.'};
+  }
+  if(!r.ok&&!d.blad) d.blad='Błąd '+r.status;
+  return d;
+};
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ── Nawigacja paskiem bocznym ─────────────────────────────────────
+   Widoki „sprawy" i „przepisy" są siatkami, pozostałe zwykłymi blokami —
+   stąd rozróżnienie 'grid'/'block'. Tytuł u góry zmienia się razem
+   z widokiem, żeby użytkownik zawsze wiedział, gdzie jest.            */
+const WIDOKI = {
+  sprawy:     {el:'widok-sprawy',     tryb:'grid',  tytul:'Sprawy'},
+  przepisy:   {el:'widok-przepisy',   tryb:'grid',  tytul:'Przepisy prawne'},
+  terminy:    {el:'widok-terminy',    tryb:'block', tytul:'Terminy procesowe'},
+  instrukcja: {el:'widok-instrukcja', tryb:'block', tytul:'Jak z tego korzystać'},
+  dziennik:   {el:'widok-dziennik',   tryb:'block', tytul:'Dziennik kontroli'},
+  audyt:      {el:'widok-audyt',      tryb:'block', tytul:'Log audytowy'},
+  kopie:      {el:'widok-kopie',      tryb:'block', tytul:'Kopie zapasowe'},
+};
+
+function przelacz(w){
+  for(const [nazwa,def] of Object.entries(WIDOKI)){
+    const el = document.getElementById(def.el);
+    if(el) el.style.display = (nazwa===w) ? def.tryb : 'none';
+    const link = document.getElementById('z-'+nazwa);
+    if(link) link.classList.toggle('aktywna', nazwa===w);
+  }
+  const t = document.getElementById('tytul-widoku');
+  if(t && WIDOKI[w]) t.textContent = WIDOKI[w].tytul;
+  if(w==='przepisy') wczytajPrzepisy();
+  if(w==='terminy')  wczytajReguly();
+  if(w==='dziennik') wczytajDziennik();
+  if(w==='audyt')    wczytajAudyt();
+  if(w==='kopie'){ wczytajKopie(); wczytajMfa(); }
+}
+
+/* ── Drugi składnik ────────────────────────────────────────────────
+   Włączenie jest DWUETAPOWE: sekret powstaje osobno, a drugi składnik
+   zaczyna obowiązywać dopiero po potwierdzeniu kodem z telefonu.
+   Inaczej ktoś, kto źle przepisał sekret, zostałby odcięty od akt bez
+   drogi powrotu — system nie ma poczty, więc nie ma resetu mailem.   */
+async function wczytajMfa(){
+  const cel = document.getElementById('stan-mfa');
+  const d = await api('/api/profil/stan');
+  const m = d.mfa || {};
+
+  if(m.wlaczony){
+    cel.innerHTML = `<div class="wgrany-ok">
+      <b>✓ Drugi składnik włączony</b>
+      <span class="opis">pozostało kodów zapasowych: ${m.kodow_zapasowych}</span>
+      </div>
+      <button onclick="wylaczMfa()">Wyłącz drugi składnik</button>
+      ${m.kodow_zapasowych <= 2 ? `<div class="blad-kontroli" style="margin-top:.6rem">
+        <b>⚠ Kończą się kody zapasowe</b>
+        Przy utracie telefonu bez kodu zapasowego nie ma drogi powrotu do akt —
+        system nie ma poczty, więc nie ma resetu mailem. Wyłącz i włącz
+        drugi składnik ponownie, żeby dostać nowy komplet.</div>` : ''}`;
+    return;
+  }
+
+  cel.innerHTML = `
+    <div class="kafel">
+      <b>Drugi składnik nie jest włączony.</b>
+      <div class="opis" style="font-size:.82rem;color:var(--przygaszony);margin:.4rem 0 .6rem">
+        Samo hasło to jeden składnik — wymóg KSC pozostaje niespełniony.
+      </div>
+      <button class="glowny" onclick="przygotujMfa()">Włącz drugi składnik</button>
+    </div>
+    <div id="kreator-mfa"></div>`;
+}
+
+async function przygotujMfa(){
+  const d = await api('/api/profil/mfa/przygotuj', {method:'POST', body:'{}'});
+  if(d.blad){ alert(d.blad); return; }
+
+  document.getElementById('kreator-mfa').innerHTML = `
+    <div class="kafel uwaga">
+      <b>Krok 1 — wpisz sekret do aplikacji w telefonie</b>
+      <div style="font-family:ui-monospace,Consolas,monospace;font-size:1.05rem;
+                  letter-spacing:.08em;margin:.6rem 0;padding:.5rem .7rem;
+                  background:var(--tlo);border-radius:5px;word-break:break-all">
+        ${esc(d.sekret)}</div>
+      <div class="opis" style="font-size:.8rem">
+        Google Authenticator, Aegis, FreeOTP — dowolna aplikacja TOTP.
+        Wybierz „wpisz klucz ręcznie", nazwa konta: <code>${esc(profil.login)}</code>.
+        <b>Aplikacja ma stać na telefonie, nie na tym komputerze</b> — inaczej
+        drugi składnik jest pozorny, bo włamanie daje oba naraz.
+      </div>
+      <div style="margin-top:.8rem">
+        <b>Krok 2 — potwierdź kodem z aplikacji</b>
+        <div style="display:flex;gap:.5rem;margin-top:.4rem;max-width:320px">
+          <input id="mfa-kod" inputmode="numeric" maxlength="7" placeholder="6 cyfr">
+          <button class="glowny" onclick="wlaczMfa()">Potwierdź</button>
+        </div>
+      </div>
+      <div id="mfa-blad" class="uwaga-kontroli"></div>
+    </div>`;
+  document.getElementById('mfa-kod').focus();
+}
+
+async function wlaczMfa(){
+  const d = await api('/api/profil/mfa/wlacz', {method:'POST',
+    body: JSON.stringify({kod: val('mfa-kod')})});
+  if(d.blad){ document.getElementById('mfa-blad').textContent = '⚠ ' + d.blad; return; }
+
+  document.getElementById('kreator-mfa').innerHTML = `
+    <div class="blad-kontroli">
+      <b>⚠ Zapisz kody zapasowe TERAZ — pokazujemy je jeden jedyny raz</b>
+      Przy utracie telefonu to jedyna droga powrotu do akt. Wydrukuj albo
+      przepisz i trzymaj poza tym komputerem. Każdy działa raz.
+      <div style="font-family:ui-monospace,Consolas,monospace;font-size:.95rem;
+                  columns:2;margin:.7rem 0 .3rem;padding:.6rem .8rem;
+                  background:var(--panel);border-radius:5px">
+        ${d.kody_zapasowe.map(k=>`<div>${esc(k)}</div>`).join('')}
+      </div>
+      <button onclick="wczytajMfa()">Zapisałem — zamknij</button>
+    </div>`;
+}
+
+async function wylaczMfa(){
+  if(!confirm('Wyłączyć drugi składnik? Logowanie wróci do samego hasła, '
+            + 'a wymóg art. 21 ust. 2 lit. j KSC przestanie być spełniony.')) return;
+  await api('/api/profil/mfa/wylacz', {method:'POST', body:'{}'});
+  wczytajMfa();
+}
+
+/* ── Kopie zapasowe ────────────────────────────────────────────────
+   Kopia jest SPRAWDZANA odczytem, a nie tylko zapisywana: po zdjęciu
+   plik jest otwierany, sprawdzany i porównywany z oryginałem. Kopia,
+   której nikt nigdy nie odczytał, nie jest dowodem żadnej zdolności
+   odtworzeniowej — a najczęstszy sposób utraty akt to nie brak kopii,
+   tylko kopia okazująca się nieczytelna w dniu awarii.               */
+async function wczytajKopie(){
+  const cel = document.getElementById('lista-kopii');
+  const d = await api('/api/kopie');
+  if(d.blad){ cel.innerHTML = `<div class="blad">${esc(d.blad)}</div>`; return; }
+
+  document.getElementById('katalog-kopii').textContent = d.katalog || '';
+  cel.innerHTML = (d.kopie||[]).length
+    ? `<table><tr><th>Plik</th><th>Rozmiar</th><th>Zdjęta</th><th></th></tr>` +
+      d.kopie.map(k=>`<tr><td><code>${esc(k.nazwa)}</code></td>
+        <td>${k.megabajtow} MB</td>
+        <td>${esc(k.czas.replace('T',', '))}</td>
+        <td><button onclick="odtworzKopie('${esc(k.nazwa)}')"
+            title="Przywróć akta z tej kopii">Odtwórz</button></td></tr>`).join('') +
+      `</table><div class="legenda">Trzymanych jest ostatnich
+       ${d.ile_trzymamy}; starsze są usuwane automatycznie.</div>`
+    : `<div class="pusto">Nie ma jeszcze żadnej kopii.<br>
+       Baza z aktami istnieje w jednym egzemplarzu.</div>`;
+}
+
+/* ── Odtworzenie z kopii ───────────────────────────────────────────
+   Najbardziej niszcząca operacja w panelu: podmienia całą bazę akt.
+   Potwierdzeniem jest PRZEPISANIE nazwy pliku, nie kliknięcie „OK" —
+   kliknięcie da się zrobić odruchowo, przepisanie nie. Serwer sprawdza
+   to samo niezależnie, razem z rolą i stanem kolejki.              */
+async function odtworzKopie(nazwa){
+  const wpisane = prompt(
+    'ODTWORZENIE NADPISZE WSZYSTKIE BIEŻĄCE AKTA.\n\n' +
+    'Dotychczasowa baza zostanie odłożona obok z końcówką ' +
+    '".przed-odtworzeniem", więc pomyłka jest odwracalna.\n\n' +
+    'Aby potwierdzić, przepisz nazwę pliku kopii:\n' + nazwa);
+  if(wpisane === null) return;
+
+  const stan = document.getElementById('stan-kopii');
+  stan.innerHTML = '<div class="strategia">Odtwarzam bazę z kopii…</div>';
+
+  const d = await api(`/api/kopie/${encodeURIComponent(nazwa)}/odtworz`,
+    {method:'POST', body: JSON.stringify({potwierdzenie: wpisane})});
+
+  if(d.blad){
+    stan.innerHTML = `<div class="blad-kontroli"><b>⚠ Nie odtworzono</b><br>
+      ${esc(d.blad)}<br><br>Bieżące akta pozostały nietknięte.</div>`;
+    return;
+  }
+  stan.innerHTML = `<div class="strategia"><b>Odtworzono z ${esc(d.odtworzono)}.</b><br>
+    Spraw przed: ${d.spraw_przed}, po odtworzeniu: ${d.spraw_po}.<br>
+    Poprzednia baza leży obok z końcówką <code>.przed-odtworzeniem</code>.</div>`;
+  wczytajSprawy();
+  wczytajKopie();
+}
+
+async function zrobKopie(){
+  const przycisk = document.getElementById('btn-kopia');
+  const stan = document.getElementById('stan-kopii');
+  przycisk.disabled = true;
+  stan.innerHTML = '<div class="strategia">Zdejmuję kopię i sprawdzam ją odczytem…</div>';
+
+  const d = await api('/api/kopie', {method:'POST', body:'{}'});
+  przycisk.disabled = false;
+
+  if(d.blad){
+    stan.innerHTML = `<div class="blad-kontroli"><b>⚠ Kopia NIE powstała</b>
+      ${esc(d.blad)}<br><br>Plik został usunięty — kopia, o której wiadomo,
+      że jest zła, nie może leżeć w katalogu i udawać dobrej.</div>`;
+    return;
+  }
+  const l = d.liczniki || {};
+  stan.innerHTML = `<div class="wgrany-ok">
+    <b>✓ Kopia sprawdzona odczytem</b>
+    <span class="opis">${esc(d.nazwa)} · ${d.megabajtow} MB · ${d.sekund} s</span>
+    <div style="margin-top:.3rem;font-weight:400">spraw: ${l.sprawy ?? '—'} ·
+      dokumentów: ${l.dokumenty ?? '—'} · wpisów audytu: ${l.audyt ?? '—'}
+      — liczniki zgodne z oryginałem</div>
+  </div>`;
+  wczytajKopie();
+}
+
+/* ── Terminy procesowe ─────────────────────────────────────────────
+   ⚠️ Ten widok NIE odpytuje modelu ani razu. Datę zdarzenia wpisuje
+   prawnik, resztę liczy arytmetyka na regułach z pliku (ADR-0005).
+   To jedyna funkcja systemu, w której błąd ma bezpośredni skutek
+   prawny — i jedyna, z której model jest celowo wyłączony.          */
+let regulyTerminow = [];
+
+async function wczytajReguly(){
+  const cel = document.getElementById('lista-regul');
+  const d = await api('/api/terminy/reguly');
+  if(d.blad){ cel.innerHTML = `<div class="blad">${esc(d.blad)}</div>`; return; }
+  regulyTerminow = d.reguly || [];
+
+  const wybor = document.getElementById('t-regula');
+  wybor.innerHTML = regulyTerminow.map(r =>
+    `<option value="${esc(r.id)}">${esc(r.podstawa)} — ${r.dlugosc_dni} dni
+      (${esc(r.zdarzenie.replace(/_/g,' '))})</option>`).join('');
+
+  const niezatwierdzonych = regulyTerminow.filter(r=>!r.zatwierdzona).length;
+  cel.innerHTML =
+    (niezatwierdzonych ? `<div class="blad-kontroli">
+      <b>⚠ ${niezatwierdzonych} z ${regulyTerminow.length} reguł nie ma podpisu prawnika</b>
+      Terminy z tych reguł są <b>wyłącznie informacyjne i niewiążące</b>.
+      Katalog jest szkicem, nie źródłem prawa: podstawy prawne wymagają
+      sprawdzenia co do brzmienia i aktualności, a następnie wpisania
+      osoby zatwierdzającej w <code>reguly_terminow.yaml</code>.
+    </div>` : '') +
+    `<table><tr><th>Podstawa</th><th>Zdarzenie</th><th>Dni</th><th>Stan</th></tr>` +
+    regulyTerminow.map(r=>`<tr>
+      <td><b>${esc(r.podstawa)}</b></td>
+      <td>${esc(r.zdarzenie.replace(/_/g,' '))}</td>
+      <td>${r.dlugosc_dni}</td>
+      <td>${r.zatwierdzona
+            ? `<span class="znacznik mocne">zatwierdzona</span>`
+            : `<span class="znacznik slabe">bez podpisu</span>`}</td>
+    </tr>`).join('') + '</table>';
+}
+
+async function policzTermin(){
+  const cel = document.getElementById('wynik-terminu');
+  const data = val('t-data');
+  if(!data){ cel.innerHTML = '<div class="blad">Podaj datę zdarzenia.</div>'; return; }
+
+  const w = await api('/api/terminy/oblicz', {method:'POST', body:JSON.stringify({
+    regula_id: val('t-regula'), data_zdarzenia: data,
+    sprawa_id: sprawaAktywna})});
+  if(w.blad){ cel.innerHTML = `<div class="blad">${esc(w.blad)}</div>`; return; }
+
+  const wiazacy = w.status === 'potwierdzony';
+  cel.innerHTML = `
+    <div class="kafel" style="border-left-color:var(--${wiazacy?'ok':'ostrzezenie'});
+         background:var(--${wiazacy?'ok':'ostrzezenie'}-tlo)">
+      <div style="font-size:1.5rem;font-weight:700;letter-spacing:-.02em">
+        ${esc(w.data_uplywu)}</div>
+      <div style="font-size:.85rem;margin-top:.2rem">
+        upływ terminu · ${w.dni} dni od zdarzenia z ${esc(w.data_zdarzenia)}
+        · <b>${esc(w.podstawa)}</b></div>
+      ${(w.ostrzezenia||[]).map(o=>
+        `<div class="uwaga-kontroli">⚠ ${esc(o)}</div>`).join('')}
+    </div>
+    <div class="legenda">Liczy kod, nie model — ta sama data przy każdym
+      wywołaniu, z regułą i podstawą prawną do sprawdzenia w aktach.
+      System nie zwalnia z obowiązku samodzielnego sprawdzenia terminu.</div>`;
+}
+
+/* ── Profil ────────────────────────────────────────────────────────
+   Sesja żyje w ciasteczku HttpOnly, więc skrypt strony nie ma do niej
+   dostępu — i nie ma czego trzymać w localStorage. Stan sprawdzamy
+   pytaniem serwera, bo tylko on wie, czy sesja jeszcze obowiązuje.   */
+let profil = null;
+let trybRejestracji = false;
+
+const NAZWY_ROL = {prawnik:'Prawnik prowadzący', aplikant:'Aplikant',
+                   sekretariat:'Sekretariat / asystent'};
+
+function bladProfilu(tekst){
+  const el = document.getElementById('pr-blad');
+  el.textContent = tekst || '';
+  el.style.display = tekst ? 'block' : 'none';
+}
+
+/* ── Oświadczenia ──────────────────────────────────────────────────
+   Lista pochodzi z serwera, nie z kopii w tym pliku. Serwer sprawdza
+   komplet niezależnie od tego, co zrobi przeglądarka — blokada
+   przycisku jest uprzejmością wobec użytkownika, a nie zabezpieczeniem. */
+let zgodyLista = [];
+
+async function wczytajZgody(){
+  if(zgodyLista.length) return;
+  try{
+    const odp = await fetch('/api/profil/zgody');
+    const d = await odp.json();
+    zgodyLista = d.zgody || [];
+  }catch(e){ zgodyLista = []; }
+
+  document.getElementById('lista-zgod').innerHTML = zgodyLista.map(z => `
+    <label style="display:flex;gap:.55rem;align-items:flex-start;
+      padding:.6rem .7rem;margin-bottom:.45rem;border:1px solid #e2e8f0;
+      border-radius:6px;cursor:pointer;background:#f8fafc">
+      <input type="checkbox" class="zgoda" value="${esc(z.id)}"
+             onchange="odswiezZgody()" style="margin-top:.2rem;width:auto">
+      <span style="font-size:.79rem;line-height:1.45;color:#1e293b">
+        <b>${esc(z.tytul)}</b><br>${esc(z.tresc)}
+        <span style="display:block;margin-top:.3rem;color:#64748b;
+          font-size:.73rem"><b>Podstawa:</b> ${esc(z.podstawa)}</span>
+      </span>
+    </label>`).join('');
+  odswiezZgody();
+}
+
+function zaznaczoneZgody(){
+  return [...document.querySelectorAll('.zgoda:checked')].map(e => e.value);
+}
+
+function odswiezZgody(){
+  if(!trybRejestracji) return;
+  const komplet = zaznaczoneZgody().length === zgodyLista.length
+                  && zgodyLista.length > 0;
+  const btn = document.getElementById('pr-przycisk');
+  btn.disabled = !komplet;
+  btn.title = komplet ? '' : 'Zaznacz wszystkie oświadczenia.';
+}
+
+function przelaczTrybProfilu(){
+  trybRejestracji = !trybRejestracji;
+  document.getElementById('pola-rejestracji').style.display =
+    trybRejestracji ? 'block' : 'none';
+  if(trybRejestracji){ wczytajZgody(); }
+  else { document.getElementById('pr-przycisk').disabled = false; }
+  document.getElementById('pr-przycisk').textContent =
+    trybRejestracji ? 'Załóż profil i wejdź' : 'Zaloguj się';
+  document.getElementById('pr-przelacz').textContent =
+    trybRejestracji ? 'Mam już profil — zaloguj' : 'Załóż nowy profil';
+  document.getElementById('pr-haslo').setAttribute(
+    'autocomplete', trybRejestracji ? 'new-password' : 'current-password');
+  bladProfilu('');
+}
+
+async function zatwierdzProfil(){
+  const login = document.getElementById('pr-login').value.trim();
+  const haslo = document.getElementById('pr-haslo').value;
+  if(!login || !haslo){ bladProfilu('Podaj login i hasło.'); return; }
+
+  const cel = trybRejestracji ? '/api/profil/rejestracja' : '/api/profil/logowanie';
+  const tresc = trybRejestracji ? {
+    login, haslo,
+    imie: document.getElementById('pr-imie').value.trim(),
+    nazwisko: document.getElementById('pr-nazwisko').value.trim(),
+    rola: document.getElementById('pr-rola').value,
+    zgody: zaznaczoneZgody(),
+  } : {login, haslo, kod: document.getElementById('pr-kod').value.trim()};
+
+  const przycisk = document.getElementById('pr-przycisk');
+  przycisk.disabled = true;
+  try{
+    const odp = await fetch(cel, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(tresc),
+    });
+    const dane = await odp.json();
+    if(!odp.ok){
+      /* Drugi składnik: serwer nie wydaje sesji po samym haśle, więc
+         pole na kod pokazuje się dopiero tutaj — po sprawdzeniu hasła. */
+      if(dane.wymaga_kodu){
+        document.getElementById('pole-kodu').style.display = 'block';
+        document.getElementById('pr-kod').focus();
+      }
+      bladProfilu(dane.blad || 'Nie udało się zalogować.'); return;
+    }
+    profil = dane.profil;
+    document.getElementById('pr-haslo').value = '';
+    bladProfilu('');
+    pokazAplikacje();
+  }catch(e){
+    bladProfilu('Serwer nie odpowiada.');
+  }finally{
+    /* Przy rejestracji przycisk wraca do stanu wynikającego z zaznaczeń,
+       a nie bezwarunkowo do aktywnego — inaczej nieudana próba odblokowałaby
+       go mimo niekompletnych oświadczeń.                                  */
+    if(trybRejestracji) odswiezZgody(); else przycisk.disabled = false;
+  }
+}
+
+function pokazAplikacje(){
+  document.getElementById('ekran-profilu').classList.add('schowany');
+  document.getElementById('pasek-kto').textContent =
+    (profil.imie + ' ' + profil.nazwisko).trim() || profil.login;
+  document.getElementById('pasek-rola').textContent =
+    NAZWY_ROL[profil.rola] || profil.rola;
+  wczytajSprawy();
+}
+
+async function zmienProfil(){
+  /* Wylogowanie idzie do serwera — inaczej sesja zostawałaby ważna,
+     a ekran logowania byłby tylko zasłoną (dokładnie ten błąd, który
+     ta zmiana naprawia).                                              */
+  try{ await fetch('/api/profil/wylogowanie', {method:'POST'}); }catch(e){}
+  profil = null;
+  document.getElementById('pr-login').value = '';
+  document.getElementById('pr-haslo').value = '';
+  document.getElementById('ekran-profilu').classList.remove('schowany');
+}
+
+async function sprawdzSesje(){
+  try{
+    const odp = await fetch('/api/profil/stan');
+    const dane = await odp.json();
+    if(dane.zalogowany){ profil = dane.profil; pokazAplikacje(); return; }
+    /* Pusta baza profili — pierwsze uruchomienie. Od razu tryb zakładania,
+       żeby nikt nie próbował logować się na konto, którego nie ma.     */
+    if(!dane.sa_profile && !trybRejestracji) przelaczTrybProfilu();
+  }catch(e){
+    bladProfilu('Serwer nie odpowiada.');
+  }
+}
+
+// ── dziennik i audyt ──────────────────────────────────────────
+async function wczytajDziennik(){
+  const el = document.getElementById('tresc-dziennika');
+  const d = await api('/api/dziennik');
+  if(d.blad){ el.innerHTML = `<div class="pusto">${esc(d.blad)}</div>`; return; }
+  const z = d.zbiorczo || {};
+  if(!z.zapytan){
+    el.innerHTML = '<div class="pusto">Brak zapytań w ostatnich 7 dniach.</div>';
+    return;
+  }
+  el.innerHTML = `
+    <div class="sekcja"><h3>Ostatnie ${z.dni} dni</h3>
+      <table style="width:100%;font-size:.85rem;border-collapse:collapse">
+        <tr><td>Zapytań</td><td><b>${z.zapytan}</b></td></tr>
+        <tr><td>Twierdzeń</td><td><b>${z.twierdzen}</b></td></tr>
+        <tr><td>Wsparcie mocne / słabe / brak</td>
+            <td><b>${z.mocne} / ${z.slabe} / ${z.brak}</b></td></tr>
+        <tr><td>Odrzucone przez kontrolę</td><td><b>${z.kontrola_falsz}</b></td></tr>
+        <tr><td>Średnie pokrycie cytatem</td>
+            <td><b>${Math.round((z.srednie_pokrycie||0)*100)}%</b></td></tr>
+        <tr><td>Średni czas odpowiedzi</td>
+            <td><b>${Math.round((z.sredni_czas_ms||0)/1000)} s</b></td></tr>
+      </table></div>`;
+}
+
+async function wczytajAudyt(){
+  const el = document.getElementById('tresc-audytu');
+  const d = await api('/api/audyt');
+  if(d.blad){ el.innerHTML = `<div class="pusto">${esc(d.blad)}</div>`; return; }
+  const stan = d.lancuch_spojny
+    ? `<div class="kafel" style="border-left-color:var(--ok);background:var(--ok-tlo)">
+         <b>✓ ${esc(d.opis)}</b></div>`
+    : `<div class="kafel uwaga"><b>⚠ ${esc(d.opis)}</b></div>`;
+  el.innerHTML = stan + '<div class="sekcja">' + (d.wpisy||[]).slice(0,40).map(w=>
+    `<div style="display:flex;gap:.8rem;padding:.35rem 0;
+        border-bottom:1px solid var(--obwod);font-size:.82rem">
+       <span style="color:var(--przygaszony);white-space:nowrap">
+         ${esc((w.czas||'').replace('T',' ').slice(0,16))}</span>
+       <b style="min-width:170px">${esc(w.operacja)}</b>
+       <span style="color:var(--przygaszony)">${esc(w.szczegol||'')}</span>
+     </div>`).join('') + '</div>';
+}
+
+// ── sprawy ────────────────────────────────────────────────
+async function wczytajSprawy(){
+  const {sprawy=[]}=await api('/api/sprawy');
+  const el=document.getElementById('lista-spraw');
+  el.innerHTML = sprawy.length ? sprawy.map(s=>`
+    <div class="karta ${s.id===sprawaAktywna?'wybrana':''}" onclick="wybierzSprawe(${s.id})">
+      <div class="syg">${esc(s.sygnatura)}
+        ${s.poufnosc==='obronczy'?'<span class="znacznik obronczy">obrończy</span>':''}</div>
+      <div class="meta">${esc(s.nazwa)}</div>
+      <div class="meta">${esc(s.organ||'—')} · ${s.liczba_dokumentow} dok.</div>
+    </div>`).join('') : '<div class="pusto">Brak spraw.</div>';
+}
+
+async function dodajSprawe(){
+  const d={sygnatura:val('p-sygnatura'),nazwa:val('p-nazwa'),organ:val('p-organ'),
+           rodzaj:val('p-rodzaj'),poufnosc:val('p-poufnosc')};
+  if(!d.sygnatura.trim()||!d.nazwa.trim()){alert('Sygnatura i nazwa są wymagane.');return;}
+  let w=await api('/api/sprawy',{method:'POST',body:JSON.stringify(d)});
+
+  /* Duplikat sygnatury: pytamy, zamiast blokować albo milczeć.
+     Sygnatura identyfikuje sprawę, więc druga o tej samej to zwykle
+     pomyłka — ale bywa świadoma, więc decyzja należy do prawnika. */
+  if(w.duplikat){
+    const idzDalej = confirm(
+      w.blad + '\n\nZałożenie drugiej sprawy o tej samej sygnaturze '
+      + 'utrudni odróżnienie ich na liście i przy wyborze zakresu '
+      + 'analizy.\n\nZałożyć mimo to?');
+    if(!idzDalej) return;
+    d.mimo_duplikatu = true;
+    w = await api('/api/sprawy',{method:'POST',body:JSON.stringify(d)});
+  }
+  if(w.blad){alert(w.blad);return;}
+  ['p-sygnatura','p-nazwa','p-organ'].forEach(i=>document.getElementById(i).value='');
+  await wczytajSprawy(); wybierzSprawe(w.id);
+}
+const val=id=>document.getElementById(id).value;
+
+async function wybierzSprawe(id){
+  sprawaAktywna=id; dokumentAktywny=null; watekAktywny=null;
+  document.getElementById('dodaj-dok').style.display='block';
+  document.getElementById('pole-pytania').style.display='block';
+  document.getElementById('wynik').innerHTML='<div class="pusto">Zadaj pytanie do akt tej sprawy.</div>';
+  await wczytajSprawy(); await wczytajDokumenty(); pokazZakres();
+  await wczytajWatki();
+}
+
+/* ── Wątki ─────────────────────────────────────────────────────────
+   `watekAktywny === null` znaczy „rozmowa całej sprawy" — dotychczasowe
+   zachowanie. Wątek zawęża pamięć rozmowy do siebie, więc dwa tropy
+   w jednej sprawie przestają się mieszać.                            */
+let watekAktywny = null;
+let watkiSprawy = [];
+
+async function wczytajWatki(){
+  const panel = document.getElementById('panel-watkow');
+  if(!sprawaAktywna){ panel.style.display='none'; return; }
+  const d = await api(`/api/sprawy/${sprawaAktywna}/watki`);
+  if(d.blad){ panel.style.display='none'; return; }
+  watkiSprawy = d.watki || [];
+  panel.style.display = 'block';
+
+  const sel = document.getElementById('wybor-watku');
+  sel.innerHTML = '<option value="">— cała sprawa (bez wątku) —</option>' +
+    watkiSprawy.map(w =>
+      `<option value="${w.id}"${w.id===watekAktywny?' selected':''}>` +
+      `${esc(w.tytul)}${w.zamkniety?' (zamknięty)':''} · ${w.wiadomosci}</option>`
+    ).join('');
+  sel.value = watekAktywny ? String(watekAktywny) : '';
+  opiszWatek();
+}
+
+function biezacyWatek(){
+  return watkiSprawy.find(w => w.id === watekAktywny) || null;
+}
+
+function opiszWatek(){
+  const w = biezacyWatek();
+  const info = document.getElementById('info-watku');
+  const btn = document.getElementById('btn-zamknij-watek');
+  if(!w){
+    info.textContent = 'Rozmowa dotyczy całej sprawy. Załóż wątek, aby '
+      + 'prowadzić osobny trop i wrócić do niego później.';
+    btn.style.display = 'none';
+    return;
+  }
+  const autor = [w.autor_imie, w.autor_nazwisko].filter(Boolean).join(' ');
+  info.textContent = (w.zamkniety ? 'Wątek zamknięty. ' : '')
+    + `Założył: ${autor || 'nieznany'} · wiadomości: ${w.wiadomosci}`
+    + (w.dokument_nazwa ? ` · dokument: ${w.dokument_nazwa}` : '');
+  btn.style.display = 'inline-block';
+  btn.textContent = w.zamkniety ? 'Wznów' : 'Zamknij';
+}
+
+async function przelaczWatek(wartosc){
+  watekAktywny = wartosc ? Number(wartosc) : null;
+  opiszWatek();
+  const el = document.getElementById('wynik');
+  if(watekAktywny === null){
+    el.innerHTML = '<div class="pusto">Zadaj pytanie do akt tej sprawy.</div>';
+    return;
+  }
+  const d = await api(`/api/sprawy/${sprawaAktywna}/watki/${watekAktywny}`);
+  if(d.blad){ el.innerHTML = `<div class="pusto">${esc(d.blad)}</div>`; return; }
+  pokazHistorieWatku(d.wiadomosci || []);
+}
+
+function pokazHistorieWatku(wiadomosci){
+  const el = document.getElementById('wynik');
+  if(!wiadomosci.length){
+    el.innerHTML = '<div class="pusto">Wątek pusty — zadaj pierwsze pytanie.</div>';
+    return;
+  }
+  /* Historia wątku pokazuje AUTORA każdego pytania. To jest sedno pracy
+     kilku osób na jednej sprawie: widać, kto o co pytał i kiedy.      */
+  el.innerHTML = wiadomosci.map(w => {
+    const kto = w.rola === 'asystent' ? 'System'
+      : ([w.autor_imie, w.autor_nazwisko].filter(Boolean).join(' ') || 'Nieznany');
+    return `<div class="kafel" style="margin-bottom:.5rem">
+      <div class="stopka" style="margin-bottom:.3rem">
+        <b>${esc(kto)}</b> · ${esc((w.utworzono||'').replace('T',' ').slice(0,16))}</div>
+      <div>${esc(w.tresc)}</div></div>`;
+  }).join('');
+}
+
+async function nowyWatek(){
+  if(!sprawaAktywna) return;
+  const tytul = prompt('Nazwa wątku — np. „Alibi oskarżonego” albo '
+                     + '„Rozbieżności w zeznaniach”:');
+  if(tytul === null) return;
+  const d = await api(`/api/sprawy/${sprawaAktywna}/watki`, {
+    method:'POST', body: JSON.stringify({tytul}) });
+  if(d.blad){ alert(d.blad); return; }
+  watekAktywny = d.watek.id;
+  await wczytajWatki();
+  await przelaczWatek(String(watekAktywny));
+}
+
+async function przelacznikWatku(){
+  const w = biezacyWatek();
+  if(!w) return;
+  /* Zamknięcie NIE kasuje wiadomości — wątek da się wznowić.
+     Dlatego jeden przycisk przełącza stan w obie strony.             */
+  const d = await api(`/api/sprawy/${sprawaAktywna}/watki/${w.id}`, {
+    method:'POST', body: JSON.stringify({zamkniety: !w.zamkniety}) });
+  if(d.blad){ alert(d.blad); return; }
+  await wczytajWatki();
+}
+
+async function wczytajDokumenty(){
+  const {dokumenty=[]}=await api(`/api/sprawy/${sprawaAktywna}/dokumenty`);
+  dokumentyWszystkie = dokumenty;
+  const wszystkie=`<div class="karta ${dokumentAktywny===null&&!zaznaczone.size?'wybrana':''}"
+       onclick="zawezDo(null)">
+      <div class="syg">Cała sprawa</div><div class="meta">analiza wszystkich dokumentów</div></div>`;
+  document.getElementById('lista-dokumentow').innerHTML = wszystkie + (dokumenty.length
+    ? dokumenty.map(d=>`<div class="karta ${d.id===dokumentAktywny?'wybrana':''}">
+         <label class="zazn"><input type="checkbox" ${zaznaczone.has(d.id)?'checked':''}
+            onchange="przelaczZaznaczenie(${d.id})"
+            onclick="event.stopPropagation()"></label>
+         <span onclick="zawezDo(${d.id})" style="cursor:pointer">
+           <span class="syg">${esc(d.nazwa)}</span>
+           <span class="meta">${esc(d.rodzaj)} · ${d.dlugosc} zn.</span></span></div>`).join('')
+    : '<div class="pusto">Brak dokumentów.</div>');
+  await odswiezStrategie();
+}
+
+/* ── Wybór dokumentów: liczba decyduje o drodze i o czasie ───────────
+   Zmierzone 15.08.2026: 12 dokumentów w jednym wywołaniu daje 2/9
+   trafień, jeden dokument — 8/9. Prawnik musi to wiedzieć PRZED
+   zadaniem pytania, bo intuicja podpowiada odwrotnie: „zaznaczę
+   wszystko, żeby nic nie umknęło".
+
+   Podpowiedź liczy `agent.strategia()` po stronie serwera — jedno
+   źródło, więc obietnica z interfejsu nie rozjedzie się z tym, co
+   system faktycznie zrobi.                                            */
+function przelaczZaznaczenie(id){
+  if(zaznaczone.has(id)) zaznaczone.delete(id); else zaznaczone.add(id);
+  if(zaznaczone.size) dokumentAktywny = null;
+  odswiezStrategie();
+}
+
+function wyczyscZaznaczenie(){
+  zaznaczone.clear();
+  wczytajDokumenty();
+}
+
+async function odswiezStrategie(){
+  const pole = document.getElementById('podpowiedz-strategii');
+  if(!pole) return;
+  const n = zaznaczone.size || (dokumentyWszystkie ? dokumentyWszystkie.length : 0);
+  if(!n){ pole.innerHTML=''; return; }
+
+  let s;
+  try{ s = await api(`/api/strategia?dokumentow=${n}`); }
+  catch(e){ pole.innerHTML=''; return; }
+
+  const czas = s.sekundy < 60 ? `${s.sekundy} s`
+             : `${Math.round(s.sekundy/60)} min`;
+  const ostrzega = s.droga === 'per_dokument';
+  pole.innerHTML =
+    `<div class="strategia ${ostrzega?'uwaga':''}">
+       <b>${zaznaczone.size ? zaznaczone.size+' zaznaczonych' : 'cała sprawa ('+n+')'}</b>
+       · przewidywany czas <b>${czas}</b><br>
+       <span class="opis">${esc(s.opis)}</span>
+       ${zaznaczone.size ? '<a href="#" onclick="wyczyscZaznaczenie();return false">wyczyść</a>' : ''}
+     </div>`;
+}
+
+/* ── Wgrywanie plików ───────────────────────────────────────────────
+   Odmowa jest tu wynikiem poprawnym i musi być widoczna. Skan bez
+   warstwy tekstowej albo plik w pomylonej stronie kodowej NIE wchodzi
+   do akt — wpuszczenie go zamieniłoby weryfikację cytatów w teatr:
+   cytat zgadzałby się znak w znak ze zniekształconym źródłem.        */
+async function wgrajPliki(pliki){
+  if(!sprawaAktywna){alert('Najpierw wybierz sprawę.');return;}
+  if(!pliki || !pliki.length) return;
+
+  const cel = document.getElementById('wynik-wgrywania');
+  cel.innerHTML = `<div class="strategia">Wczytuję ${pliki.length}
+    ${pliki.length===1?'plik':'plików'}… przy PDF-ach może to potrwać.</div>`;
+
+  const dane = new FormData();
+  dane.append('rodzaj', val('d-rodzaj') || 'pismo');
+  for(const p of pliki) dane.append('pliki', p, p.name);
+
+  let w;
+  try{
+    const odp = await fetch(`/api/sprawy/${sprawaAktywna}/dokumenty/plik`,
+                            {method:'POST', body:dane});
+    w = await odp.json();
+  }catch(e){
+    cel.innerHTML = `<div class="blad">Nie udało się wgrać: ${esc(String(e))}</div>`;
+    return;
+  }
+
+  const czesci = [];
+  for(const d of (w.wczytane||[])){
+    czesci.push(`<div class="wgrany-ok"><b>✓ ${esc(d.nazwa)}</b>
+      <span class="opis">${d.typ.toUpperCase()} · ${d.znakow.toLocaleString('pl')} znaków</span>
+      ${(d.ostrzezenia||[]).map(o=>`<div class="uwaga-kontroli">⚠ ${esc(o)}</div>`).join('')}
+    </div>`);
+  }
+  for(const d of (w.odrzucone||[])){
+    czesci.push(`<div class="wgrany-blad"><b>✕ ${esc(d.nazwa)} — nie wczytano</b>
+      <div>${esc(d.powod)}</div>
+      ${d.wymaga_ocr?`<div class="opis" style="margin-top:.3rem">
+        Ten plik wymaga OCR-u. Rozpoznaj tekst w programie, w którym
+        otwierasz skany, zapisz jako PDF z warstwą tekstową albo DOCX
+        i wgraj ponownie.</div>`:''}
+    </div>`);
+  }
+  if(w.blad) czesci.push(`<div class="blad">${esc(w.blad)}</div>`);
+  cel.innerHTML = czesci.join('');
+
+  document.getElementById('d-pliki').value = '';
+  await wczytajDokumenty(); await wczytajSprawy();
+}
+
+/* Przeciąganie plików na pole. `dragover` musi anulować zdarzenie,
+   inaczej przeglądarka otworzy plik zamiast go przekazać. */
+(function upuszczanie(){
+  const pole = document.getElementById('upuszczalnia');
+  if(!pole) return;
+  ['dragenter','dragover'].forEach(z=>pole.addEventListener(z, e=>{
+    e.preventDefault(); pole.classList.add('nad');
+  }));
+  ['dragleave','drop'].forEach(z=>pole.addEventListener(z, e=>{
+    e.preventDefault(); pole.classList.remove('nad');
+  }));
+  pole.addEventListener('drop', e=>{
+    if(e.dataTransfer && e.dataTransfer.files) wgrajPliki(e.dataTransfer.files);
+  });
+})();
+
+async function dodajDokument(){
+  const d={nazwa:val('d-nazwa'),rodzaj:val('d-rodzaj'),tresc:val('d-tresc')};
+  if(!d.nazwa.trim()||!d.tresc.trim()){alert('Nazwa i treść są wymagane.');return;}
+  const w=await api(`/api/sprawy/${sprawaAktywna}/dokumenty`,{method:'POST',body:JSON.stringify(d)});
+  if(w.blad){alert(w.blad);return;}
+  document.getElementById('d-nazwa').value=''; document.getElementById('d-tresc').value='';
+  await wczytajDokumenty(); await wczytajSprawy();
+}
+
+async function zawezDo(id){dokumentAktywny=id; await wczytajDokumenty(); pokazZakres();}
+
+function pokazZakres(){
+  const el=document.getElementById('zakres-info');
+  if(!sprawaAktywna){el.innerHTML='';return;}
+  const s=document.querySelector('#lista-spraw .karta.wybrana .syg');
+  el.innerHTML=`<div class="zakres"><b>Zakres: sprawa ${esc(s?s.textContent.trim():sprawaAktywna)}</b>
+    Analiza obejmuje ${dokumentAktywny===null?'wszystkie dokumenty sprawy':'wyłącznie wybrany dokument'}.
+    Nic spoza tej sprawy nie trafia do kontekstu.</div>`;
+}
+
+// ── analiza z postępem ────────────────────────────────────
+async function analizuj(){
+  const p=document.getElementById('pytanie').value.trim();
+  if(!p) return;
+  const btn=document.getElementById('btn-analizuj');
+  btn.disabled=true;
+  document.getElementById('wynik').innerHTML='';
+
+  const biezacy = biezacyWatek();
+  if(biezacy && biezacy.zamkniety){
+    btn.disabled=false;
+    pokazBlad('Wątek jest zamknięty. Wznów go, aby kontynuować.');
+    return;
+  }
+
+  const w=await api(`/api/sprawy/${sprawaAktywna}/analiza`,{method:'POST',
+    body:JSON.stringify({pytanie:p, dokument_id:dokumentAktywny,
+      dokumenty_id:[...zaznaczone], watek_id:watekAktywny,
+      uzyj_przepisow:document.getElementById('uzyj-przepisow').checked})});
+
+  if(w.blad){btn.disabled=false; pokazBlad(w.blad); return;}
+  sonduj(w.zadanie_id, btn);
+}
+
+function pokazPostep(z){
+  const proc = z.wszystkie ? Math.round(100*z.zrobione/z.wszystkie) : 0;
+  document.getElementById('postep-box').innerHTML=`<div class="postep">
+    <div class="etap">${esc(z.etap||'Uruchamiam analizę…')}</div>
+    <div class="pasek"><div style="width:${proc}%"></div></div>
+    ${z.wszystkie?`<div class="licznik">${z.zrobione} z ${z.wszystkie}</div>`:''}
+  </div>`;
+}
+
+function sonduj(id, btn){
+  clearInterval(sondowanie);
+  sondowanie=setInterval(async()=>{
+    const z=await api(`/api/zadania/${id}`);
+    if(z.blad&&!z.stan){clearInterval(sondowanie);btn.disabled=false;
+      document.getElementById('postep-box').innerHTML=''; pokazBlad(z.blad); return;}
+    pokazPostep(z);
+    if(z.stan==='gotowe'||z.stan==='blad'){
+      clearInterval(sondowanie); btn.disabled=false;
+      document.getElementById('postep-box').innerHTML='';
+      if(z.stan==='blad'){pokazBlad(z.blad);return;}
+      document.getElementById('pytanie').value='';
+      renderuj(z.wynik);
+    }
+  },1200);
+}
+
+/* ── Podgląd cytatu w aktach ────────────────────────────────────────
+   Otwiera dokument źródłowy i podświetla DOKŁADNIE ten zakres znaków,
+   który przeszedł weryfikację. Prawnik widzi cytat w kontekście, bez
+   szukania go w piśmie na czterdzieści stron.                        */
+async function pokazZrodlo(dokId, poczatek, koniec){
+  if(!sprawaAktywna) return;
+  const zaslona = document.getElementById('zaslona');
+  const cel = document.getElementById('tresc-dokumentu');
+  document.getElementById('tytul-podgladu').textContent = 'Wczytuję…';
+  cel.textContent = '';
+  zaslona.classList.add('widoczna');
+
+  try{
+    const odp = await (await fetch(`/api/sprawy/${sprawaAktywna}/dokumenty/${dokId}`)).json();
+    if(odp.blad){ cel.textContent = odp.blad; return; }
+    /* API zwraca dokument OPAKOWANY: {dokument:{...}}. */
+    const o = odp.dokument || odp;
+    if(!o || typeof o.tresc !== 'string'){
+      cel.textContent = 'Dokument nie zawiera treści.'; return;
+    }
+
+    document.getElementById('tytul-podgladu').textContent =
+      `${o.nazwa} · znaki ${poczatek}–${koniec}`;
+
+    /* Kontekst wokół cytatu, nie cały dokument — przy orzeczeniu na
+       50 stron przeglądarka i tak nie pokaże wszystkiego sensownie.  */
+    const MARGINES = 3000;
+    const od = Math.max(0, poczatek - MARGINES);
+    const doo = Math.min(o.tresc.length, koniec + MARGINES);
+
+    const przed = o.tresc.slice(od, poczatek);
+    const cytat = o.tresc.slice(poczatek, koniec);
+    const po    = o.tresc.slice(koniec, doo);
+
+    cel.innerHTML =
+      (od > 0 ? '<span style="color:#94a3b8">[…]\n\n</span>' : '') +
+      esc(przed) + '<mark class="cytowane" id="znacznik">' + esc(cytat) + '</mark>' +
+      esc(po) + (doo < o.tresc.length ? '<span style="color:#94a3b8">\n\n[…]</span>' : '');
+
+    const zn = document.getElementById('znacznik');
+    if(zn) zn.scrollIntoView({block:'center'});
+  }catch(e){
+    cel.textContent = 'Nie udało się wczytać dokumentu: ' + e;
+  }
+}
+
+function zamknijPodglad(){
+  document.getElementById('zaslona').classList.remove('widoczna');
+}
+document.addEventListener('keydown', e=>{
+  if(e.key === 'Escape') zamknijPodglad();
+});
+
+function pokazBlad(t){
+  document.getElementById('wynik').innerHTML=`<div class="blad">${esc(t)}</div>`;
+}
+
+/* ── Znacznik: ile wiadomo o relacji cytat → twierdzenie ─────────────
+   Weryfikator dowodzi, że cytat JEST w aktach. To osobna rzecz od tego,
+   czy zdanie POPIERA to, co mu przypisano — i tylko ta druga jest tu
+   pokazywana. Kolejność sprawdzania odpowiada mocy dowodu: werdykt
+   kontrolera przed pokryciem leksykalnym, bo kontroler czyta sens,
+   a pokrycie liczy słowa.                                             */
+function znacznikWsparcia(c){
+  if(c.kontrola === 'prawda')
+    return '<span class="znacznik mocne" title="Niezależna kontrola na czystym '+
+           'kontekście potwierdziła, że zdanie to stwierdza.">sprawdzone</span>';
+  if(c.kontrola === 'niezweryfikowane')
+    return '<span class="znacznik niezweryfikowane" title="Kontrola niezależna '+
+           'nie zadziałała. Brak potwierdzenia NIE oznacza potwierdzenia.">'+
+           'niezweryfikowane</span>';
+  if(c.stopien === 'mocne')
+    return `<span class="znacznik mocne" title="Pokrycie ${c.pokrycie ?? '—'} — `+
+           'twierdzenie mieści się w słowach cytatu.">wsparcie mocne</span>';
+  if(c.stopien === 'slabe')
+    return `<span class="znacznik slabe" title="Pokrycie ${c.pokrycie ?? '—'} — `+
+           'sprawdź cytat w aktach.">wsparcie słabe</span>';
+  return '';
+}
+
+const LEGENDA = `<div class="legenda">
+  <b>sprawdzone</b> — osobny kontroler przeczytał samo zdanie z akt, bez
+  pytania i bez reszty sprawy, i potwierdził, że mówi ono to, co mu
+  przypisano. &nbsp;·&nbsp;
+  <b>wsparcie mocne / słabe</b> — pokrycie liczone mechanicznie, bez
+  modelu. &nbsp;·&nbsp;
+  <b>niezweryfikowane</b> — kontrola nie zadziałała; brak potwierdzenia
+  nie jest potwierdzeniem. &nbsp;·&nbsp;
+  Każdy cytat pozostaje klikalny — najpewniejszym sprawdzeniem jest
+  zawsze zajrzenie do akt.
+</div>`;
+
+/* ── Eksport wyniku ─────────────────────────────────────────────────
+   Plik powstaje po stronie serwera z TEGO SAMEGO wyniku, który widzisz
+   na ekranie — nic nie jest streszczane ani porządkowane po drodze.
+   Sekcja „odrzucone" wchodzi do pliku obowiązkowo: bez niej dokument
+   wygląda na pełniejszy, niż jest.
+
+   ⚠️ Zapisany plik nie jest już chroniony niczym poza szyfrowaniem
+   nośnika. Czynność trafia do logu audytowego.                      */
+let ostatniWynik = null;
+
+async function eksportuj(format){
+  if(!ostatniWynik){alert('Najpierw wykonaj analizę.');return;}
+  const d = await api(`/api/sprawy/${sprawaAktywna}/eksport`, {method:'POST',
+    body: JSON.stringify({wynik: ostatniWynik, format})});
+  if(d.blad){alert(d.blad);return;}
+
+  const plik = new Blob([d.tresc], {type: d.typ + ';charset=utf-8'});
+  const adres = URL.createObjectURL(plik);
+  const odnosnik = document.createElement('a');
+  odnosnik.href = adres; odnosnik.download = d.nazwa;
+  document.body.appendChild(odnosnik); odnosnik.click();
+  odnosnik.remove(); URL.revokeObjectURL(adres);
+}
+
+function renderuj(w){
+  if(!w){pokazBlad('Brak wyniku analizy.');return;}
+  if(w.blad){pokazBlad(w.blad);return;}
+  ostatniWynik = w;
+  const cz=[];
+
+  cz.push(`<div class="zakres" style="background:var(--tlo)">
+    <b>${esc(w.pytanie)}</b>
+    Przeanalizowano ${w.przeanalizowane_dokumenty.length} dok.${
+      w.pominiete_dokumenty?` · pominięto ${w.pominiete_dokumenty} jako nietrafne`:''}
+    ${w.watki&&w.watki.length?`<br>Wątki: ${w.watki.map(esc).join(' · ')}`:''}</div>`);
+
+  /* ── BŁĄD KONTROLI NIEZALEŻNEJ — NA SAMEJ GÓRZE ────────────────────
+     Twierdzenia odrzucone przez kontrolę leżą w `odrzucone` razem
+     z resztą, w sekcji zwiniętej. Dla tej jednej kategorii to za mało:
+     kontroler przeczytał zdanie z akt na czystym kontekście i orzekł,
+     że NIE mówi ono tego, co model mu przypisał. To jest błąd, nie
+     przypis — i ma być widoczny przed wynikiem, nie pod nim.          */
+  const bledyKontroli = (w.odrzucone||[]).filter(
+    o => o.powod === 'odrzucony_kontrola_niezalezna');
+  if(bledyKontroli.length){
+    cz.push(`<div class="blad-kontroli">
+      <b>⚠ Kontrola niezależna odrzuciła ${bledyKontroli.length}
+        ${bledyKontroli.length===1?'twierdzenie':'twierdzenia'}</b>
+      Zacytowane zdanie istnieje w aktach, ale sprawdzone osobno — bez
+      pytania, bez reszty akt, bez historii rozmowy — <b>nie stwierdza
+      tego, co mu przypisano</b>. Twierdzenie nie weszło do wyniku.
+      ${bledyKontroli.map(o=>`<div class="poz">„${esc(o.tekst)}”
+        ${o.szczegol?`<br><small>${esc(o.szczegol)}</small>`:''}</div>`).join('')}
+    </div>`);
+  }
+
+  if(w.ustalenia.length){
+    cz.push('<div class="sekcja"><h3>Ustalenia z akt</h3>'+
+      w.ustalenia.map((u,i)=>`<div class="ustalenie">
+        <span class="nr">${i+1}.</span>${esc(u.tekst)}
+        ${u.cytaty.map(c=>`<div class="cytat klikalny"
+             onclick="pokazZrodlo('${c.dokument_id}',${c.poczatek},${c.koniec})"
+             title="Pokaż ten fragment w dokumencie">
+          <div class="zrodlo">${esc(u.dokument)} · znaki ${c.poczatek}–${c.koniec}
+            ${znacznikWsparcia(c)}
+            <span class="lupa">otwórz w aktach ↗</span></div>
+          „${esc(c.fragment)}”
+          ${c.ostrzezenie?`<span class="uwaga-kontroli">⚠ ${esc(c.ostrzezenie)}</span>`:''}
+        </div>`).join('')}
+      </div>`).join('')+
+      (w.ustalenia.some(u=>u.cytaty.some(c=>c.stopien))?LEGENDA:'')+'</div>');
+  }
+
+  if(w.wnioski.length){
+    cz.push('<div class="sekcja"><h3>Wnioski</h3>'+
+      w.wnioski.map(v=>`<div class="wniosek">${esc(v.tekst)}
+        <div class="oparte">wynika z ustaleń:
+          ${v.oparte_na.map(n=>`<span class="chip">${n}</span>`).join('')}</div>
+      </div>`).join('')+'</div>');
+  }
+
+  if(w.rozbieznosci.length){
+    cz.push('<div class="sekcja"><h3>Rozbieżności</h3>'+
+      w.rozbieznosci.map(r=>`<div class="rozbieznosc">${esc(r.opis)}
+        <div class="oparte">dotyczy ustaleń:
+          ${r.oparte_na.map(n=>`<span class="chip">${n}</span>`).join('')}</div>
+      </div>`).join('')+
+      '<div class="stopka">System wskazuje rozbieżności. Nie rozstrzyga, '+
+      'która wersja jest prawdziwa, i nie ocenia wiarygodności osób.</div></div>');
+  }
+
+  if(w.podstawa_prawna.length){
+    cz.push('<div class="sekcja"><h3>Podstawa prawna</h3>'+
+      w.podstawa_prawna.map(p=>`<div class="prawo">${esc(p.tekst)}
+        <div class="cytat"><div class="zrodlo prawo">${esc(p.cytat.nazwa)}</div>
+        „${esc(p.cytat.fragment)}”</div></div>`).join('')+'</div>');
+  }
+
+  if(w.luki.length){
+    cz.push('<div class="sekcja"><h3>Luki w aktach</h3>'+
+      w.luki.map(l=>`<div class="luka">${esc(l)}</div>`).join('')+'</div>');
+  }
+
+  if(w.odrzucone.length){
+    /* Etykieta wymienia obie przyczyny, bo od 15.08.2026 trafiają tu
+       twierdzenia odrzucone z DWÓCH różnych powodów: cytat bez pokrycia
+       w źródle oraz cytat z akt, który nie popiera twierdzenia. Nazwanie
+       całości „bez pokrycia w źródle" przypisywałoby tym drugim zarzut
+       zmyślenia cytatu, którego nie popełniły.                          */
+    cz.push(`<details class="sekcja"><summary>Odrzucone w kontroli
+      (${w.odrzucone.length}) — cytat bez pokrycia w źródle albo cytat,
+      który nie popiera twierdzenia</summary>`+
+      w.odrzucone.map(o=>`<div class="odrzucone">„${esc(o.tekst)}”
+        <br><small>${esc(o.powod)}${o.szczegol?' — '+esc(o.szczegol):''}</small>
+      </div>`).join('')+'</details>');
+  }
+
+  if(!w.ustalenia.length&&!w.wnioski.length){
+    cz.push('<div class="luka">W aktach tej sprawy nie znaleziono podstawy '+
+      'do odpowiedzi. Odmowa jest poprawnym wynikiem — model nie uzupełnia '+
+      'braków własnymi domysłami.</div>');
+  }
+
+  cz.push(`<div class="eksport">
+    <b>Przenieś do notatki</b>
+    <button onclick="eksportuj('md')">Markdown</button>
+    <button onclick="eksportuj('html')">HTML (do druku / PDF)</button>
+    <div class="opis">Plik zawiera cytaty w brzmieniu ze źródła, stan
+      kontroli każdego twierdzenia i sekcję odrzuconych. Zapisany na dysku
+      nie jest już chroniony niczym poza szyfrowaniem nośnika — pobranie
+      trafia do logu audytowego.</div>
+  </div>`);
+
+  document.getElementById('wynik').innerHTML=cz.join('');
+}
+
+// ── przepisy ──────────────────────────────────────────────
+async function wczytajPrzepisy(){
+  const {przepisy=[]}=await api('/api/przepisy');
+  document.getElementById('lista-przepisow').innerHTML = przepisy.length
+    ? przepisy.map(p=>`<div class="karta" style="cursor:default">
+        <div class="syg">${esc(p.akt)} — ${esc(p.jednostka)}</div>
+        <div class="meta">${p.dlugosc} zn.${p.zrodlo?' · '+esc(p.zrodlo):''}
+          ${p.zweryfikowal?' · zweryfikował: '+esc(p.zweryfikowal):
+            ' · <b style="color:var(--ostrzezenie)">niezweryfikowany</b>'}</div>
+        <div class="meta"><button onclick="usunPrzepis(${p.id})">Usuń</button></div>
+      </div>`).join('')
+    : '<div class="pusto">Korpus przepisów jest pusty.<br>'+
+      'Analiza będzie działać, ale bez podstawy prawnej.</div>';
+}
+
+async function dodajPrzepis(){
+  const d={akt:val('pr-akt'),jednostka:val('pr-jednostka'),tresc:val('pr-tresc'),
+           zrodlo:val('pr-zrodlo'),zweryfikowal:val('pr-zweryfikowal')};
+  if(!d.akt.trim()||!d.jednostka.trim()||!d.tresc.trim()){
+    alert('Akt, jednostka i treść są wymagane.');return;}
+  const w=await api('/api/przepisy',{method:'POST',body:JSON.stringify(d)});
+  if(w.blad){alert(w.blad);return;}
+  ['pr-akt','pr-jednostka','pr-tresc','pr-zrodlo'].forEach(i=>document.getElementById(i).value='');
+  wczytajPrzepisy();
+}
+
+async function usunPrzepis(id){
+  if(!confirm('Usunąć przepis z korpusu?'))return;
+  await api(`/api/przepisy/${id}`,{method:'DELETE'});
+  wczytajPrzepisy();
+}
+
+document.getElementById('pytanie')?.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)) analizuj();
+});
+
+/* ── Start ─────────────────────────────────────────────────────────
+   O tym, czy wpuścić, decyduje SERWER — pytamy go o stan sesji.
+   Wcześniej rozstrzygał o tym wpis w localStorage, czyli dane, które
+   każdy mógł sobie wpisać samodzielnie.                              */
+(function start(){
+  sprawdzSesje();
+  document.getElementById('pr-login').focus();
+})();
+</script>
+</body>
+</html>
