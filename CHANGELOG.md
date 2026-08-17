@@ -25,6 +25,39 @@ a prośba o zapłatę skierowana do schroniska.
   przed wpuszczeniem prawdziwych akt.
 - `eval/README.md` — skąd wziąć korpusy pomiarowe (SAOS, RECAP) i dlaczego
   nie ma ich w repozytorium.
+- **QUICKSTART krok 0 — wymagania sprzętowe.** Minimum i zalecenia (VRAM,
+  RAM, dysk, rdzenie), maszyna odniesienia, na której zmierzono wszystkie
+  publikowane liczby, oraz pomiar różnicy GPU/CPU: **2,6 s wobec 33,7 s,
+  czyli 13,2× wolniej** na tym samym modelu i pytaniu. Wcześniej stało tam
+  jedno zdanie „8 GB VRAM albo cierpliwość" — za mało, żeby ktoś przed
+  pobraniem 9 GB wiedział, czy to na jego komputerze ruszy.
+- **QUICKSTART krok 3 — przypięcie wersji modeli odciskami.** Znaczniki
+  Ollamy bywają przestawiane na nowe kompilacje; bez odcisku nie da się
+  stwierdzić, czy ktoś mierzy na tych samych wagach. Podane pełne sumy
+  SHA-256 obu modeli bazowych wraz z instrukcją sprawdzenia i jasnym
+  postawieniem sprawy: inny odcisk nie jest usterką, ale publikowane
+  wyniki przestają dotyczyć tej instalacji.
+- **QUICKSTART krok 10 — weryfikacja instalacji zestawem testów.**
+  Oczekiwane `582 passed, 105 skipped, 1 warning` z wyjaśnieniem każdej
+  z trzech liczb, w tym że ostrzeżenie o luce J-3 (82% wobec celu 90%)
+  jest celowe i pojawia się przy każdym przebiegu.
+- Rozwiązywanie problemów: rozróżnienie „model nie zmieścił się na karcie"
+  od „pytanie obejmuje całą sprawę" przez kolumnę PROCESSOR w `ollama ps`,
+  oraz obsługa braku pamięci przy pracy na procesorze.
+
+### Poprawione
+- **`models/manifest.md` opisywał model, którego system nie używa.**
+  Jako „model językowy" figurował Bielik-11B, odrzucony w ablacji
+  14.08.2026, podczas gdy produkcja stoi na dwóch modelach wybieranych
+  po języku dokumentu: `bielik-lex-map` (minitron-7B) i `llama-lex-map`
+  (Llama 3.1 8B). Manifest wskazujący nieużywany model jest gorszy niż
+  jego brak — prowadzi wprost do zainstalowania czegoś innego niż to,
+  na czym mierzono. Uzupełniono odciski, zajętość VRAM i parametry.
+- **Licencja wag Llamy nazwana wprost.** Manifest sugerował Apache 2.0
+  dla całości; Llama 3.1 Community License zawiera warunki, których
+  Apache nie ma, i nie jest licencją wolną. Dla kancelarii bez znaczenia
+  praktycznego, ale przy zmianie modelu wymaga sprawdzenia — tak samo
+  jak odnotowany wcześniej przypadek Suryi.
 
 ### Usunięte
 - `docs/00-wejscie/` — prywatny raport wejściowy przygotowany dla konkretnej

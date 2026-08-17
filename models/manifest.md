@@ -11,23 +11,53 @@ Przypadek, który to unaocznia: **Surya** — kod na Apache 2.0, ale wagi na AI 
 
 ---
 
-## Model językowy
+## Modele językowe — stan produkcyjny
+
+⚠️ **Poprawione 17.08.2026.** Wcześniej stał tu wyłącznie Bielik-11B, opisany
+jako „model językowy" systemu. **System go nie używa.** Ablacja z 14.08.2026
+odrzuciła 11B w roli wydobywającej (8 błędów / 99,0 s wobec 6 / 35,1 s dla
+minitrona), a od wprowadzenia wyboru modelu po języku dokumentu (`panel/jezyk.py`)
+produkcja stoi na **dwóch** modelach, nie jednym. Manifest opisujący nieużywany
+model jest gorszy niż brak manifestu: prowadzi wprost do zainstalowania czegoś
+innego niż to, na czym mierzono.
+
+Wersje przypięte odciskami w [`../QUICKSTART.md`](../QUICKSTART.md) (krok 3).
+
+| Rola | Model roboczy | Baza | Odcisk bazy | Licencja wag |
+|---|---|---|---|---|
+| dokumenty **polskie** | `bielik-lex-map` | `SpeakLeash/bielik-minitron-7B-v3.0-instruct:Q4_K_M` | `6660954d0758` | Apache 2.0 |
+| dokumenty **angielskie** | `llama-lex-map` | `llama3.1:8b-instruct-q4_K_M` | `46e0c10c039e` | Llama 3.1 Community License |
 
 | Pole | Wartość |
 |---|---|
-| Nazwa | Bielik-11B-v3.0-Instruct |
-| Twórca | SpeakLeash + ACK Cyfronet AGH |
-| Wydanie | styczeń 2026 |
-| **Licencja wag** | **Apache 2.0** |
-| Data weryfikacji licencji | 14.08.2026 |
-| Źródło | biblioteka Ollama: `SpeakLeash/bielik-11b-v3.0-instruct` |
-| Kwantyzacja (profil rozwojowy) | Q4_K_M, ~6,7 GB |
-| Kwantyzacja (profil produkcyjny) | Q8_0 lub FP16 |
-| Suma kontrolna | _do uzupełnienia po pobraniu_ |
-| Wniesiony przez | _do uzupełnienia_ |
-| Data wniesienia | _do uzupełnienia_ |
+| Twórcy | SpeakLeash + ACK Cyfronet AGH (Bielik) · Meta (Llama 3.1) |
+| Data weryfikacji licencji | 17.08.2026 |
+| Kontekst | `num_ctx 8192` — zmierzony, nie domyślny |
+| Ziarno | `seed 42` — powtarzalność przebiegów |
+| Zajętość VRAM | 5,2 GB, w całości na GPU (zmierzone 17.08.2026) |
 
-**Ostrzeżenie z karty modelu:** modele kwantyzowane wykazują obniżoną jakość odpowiedzi i podatność na halucynacje. Konsekwencja: Q4 wyłącznie do prac rozwojowych na korpusie syntetycznym.
+⚠️ **Licencja Llamy nie jest Apache.** Llama 3.1 Community License zawiera
+warunki, których Apache 2.0 nie ma — m.in. próg 700 mln aktywnych użytkowników
+miesięcznie i wymóg oznaczenia „Built with Llama". Dla kancelarii to bez
+znaczenia praktycznego, ale **to nie jest licencja wolna** i przy każdej zmianie
+modelu trzeba to sprawdzić od nowa, tak samo jak przy Suryi wyżej.
+
+**Ostrzeżenie z karty modelu:** modele kwantyzowane wykazują obniżoną jakość
+odpowiedzi i podatność na halucynacje. Publikowane wyniki (trafność 80,0%,
+poprawna odmowa 82,0%) **już ten koszt zawierają** — zmierzono je na Q4_K_M,
+a nie na wagach pełnej precyzji.
+
+### Model odrzucony — zostaje wyłącznie do prac rozwojowych
+
+| Pole | Wartość |
+|---|---|
+| Nazwa | Bielik-11B-v3.0-Instruct (`bielik-lex-dev`) |
+| Źródło | `SpeakLeash/bielik-11b-v3.0-instruct:Q4_K_M`, ~6,7 GB |
+| Licencja wag | Apache 2.0 (zweryfikowano 14.08.2026) |
+| Status | **nieużywany w produkcji** — `models/Modelfile.bielik-dev` zostaje dla powtórzenia ablacji |
+
+Instrukcja instalacji **celowo go nie buduje**: kosztuje 6,7 GB pobierania
+i 1,5 GB VRAM ponad budżet 8-gigabajtowej karty, nie dając nic w zamian.
 
 ## Embedder
 

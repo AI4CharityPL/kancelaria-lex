@@ -152,8 +152,25 @@ chain**, and a quality journal that never stores case content.
 **→ [QUICKSTART.md](QUICKSTART.md)** — written for someone who has never used a
 command line. About 30 minutes, most of it waiting for model downloads.
 
-You need a Windows, macOS or Linux machine with **8 GB of VRAM** (or patience),
-about **15 GB of disk**, and no internet connection after setup.
+**Check the hardware first.** [Step 0](QUICKSTART.md#step-0--will-it-run-on-your-computer)
+tells you whether this machine can run it *before* you download 9 GB:
+
+| | Minimum | Recommended |
+|---|---|---|
+| Graphics memory (VRAM) | 6 GB free | 8 GB |
+| RAM | 16 GB | 32 GB |
+| Free disk | 15 GB | 25 GB |
+
+It runs without a graphics card, but we measured it at **13× slower** — usable
+for trying it out, painful for daily work. Apple Silicon shares memory, so a
+16 GB Mac takes the fast path.
+
+The setup guide **pins the exact model versions by digest**. Two models with the
+same name are not the same model, and the accuracy figures below belong to
+specific weights — [Step 3](QUICKSTART.md#step-3--download-the-two-language-models)
+tells you how to confirm you have them.
+
+Windows, macOS or Linux. No internet connection needed after setup.
 
 ## Documentation
 

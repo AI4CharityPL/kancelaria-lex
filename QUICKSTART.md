@@ -3,13 +3,78 @@
 Written for someone who has never used a command line. Follow it top to bottom.
 
 **Time:** about 30 minutes, most of it waiting for downloads.
-**You need:** ~15 GB of free disk, and a graphics card with 8 GB of VRAM if you
-want fast answers (it works without one — just slower).
 
 After setup, **the system never needs the internet again.**
 
 > Every step tells you **what you should see** when it worked. If you see
 > something else, jump to [When something goes wrong](#when-something-goes-wrong).
+
+---
+
+## Step 0 — Will it run on your computer?
+
+**Read this before downloading 9 GB.** The model is what needs the hardware, and
+the difference between a suitable and unsuitable machine is not subtle.
+
+### The short answer
+
+| You have | What happens |
+|---|---|
+| **A graphics card with ≥ 6 GB of free VRAM** | The model runs entirely on the card. Answers in **10–30 seconds**. This is what everything below assumes. |
+| **A graphics card with 4 GB** | Part of the model runs on the card, the rest on the processor. Works, noticeably slow. |
+| **No graphics card (or an integrated one)** | Runs on the processor. **Measured 13× slower** — see below. Usable for trying it out; painful for daily work. |
+| **Less than 16 GB of RAM and no graphics card** | **Do not.** The model alone needs 5,4 GB of RAM in this mode, before the system and your browser. |
+
+### Minimum and recommended
+
+| | Minimum | Recommended |
+|---|---|---|
+| **VRAM** (graphics memory) | 6 GB free | 8 GB |
+| **RAM** | 16 GB | 32 GB |
+| **Processor** | 4 cores | 8 cores |
+| **Free disk** | 15 GB | 25 GB |
+| **Operating system** | Windows 10/11, macOS 12+, or Linux | — |
+
+Disk breakdown: **9,4 GB** for the two models, ~3 MB for the project itself, and
+the rest for your case files, the database and backups.
+
+> **Apple Silicon** (M1/M2/M3/M4) shares memory between processor and graphics,
+> so the VRAM row does not apply — a 16 GB Mac behaves like the fast path.
+
+### The measurement, so you can judge for yourself
+
+Identical prompt, identical model, same machine — only the processor/graphics
+choice differs:
+
+| Where the model runs | Time |
+|---|---:|
+| Graphics card (Quadro RTX 4000, 8 GB) | **2,6 s** |
+| Processor only (Core i7-10875H, 8 cores) | **33,7 s** |
+
+**13,2× slower**, and that was a one-sentence question. A real question about a
+case file takes 10–30 seconds on the card — so expect **several minutes** on a
+processor, and longer on a weaker one than this.
+
+The system does not break without a graphics card. It gets slow. Knowing which
+one you are facing before you download 9 GB is the point of this section.
+
+### The machine every published number comes from
+
+The accuracy figures in the README were measured here, and nowhere else:
+
+| | |
+|---|---|
+| Graphics | NVIDIA Quadro RTX 4000 Max-Q, **8 GB VRAM** (driver 580.92) |
+| Processor | Intel Core i7-10875H, 8 cores / 16 threads |
+| RAM | 64 GB |
+| System | Windows 11 |
+| Context window | 8192 tokens (set in the `Modelfile`s — do not change it) |
+
+**Different hardware does not change the accuracy**, as long as the model fits
+and you use the same models and settings — the quantisation, the context size and
+the fixed seed are what determine the answer, not the card. Hardware changes the
+speed. **Different models change everything**, which is why Step 3 pins exact
+versions.
 
 ---
 
@@ -69,6 +134,45 @@ ollama pull llama3.1:8b-instruct-q4_K_M
 Why two models: the Polish one (Bielik, made in Poland) reads Polish documents,
 the other reads English ones. **Using the wrong language model on a document
 measurably wrecks the results** — so the system picks automatically per document.
+
+### Check you got the same weights we measured
+
+The tags above can be re-pointed at new builds by their publishers. If you want
+your results to be comparable with the README, verify the identifiers:
+
+```bash
+ollama list
+```
+
+**You should see** these two lines, and the ID column must match **exactly**:
+
+| Model | ID |
+|---|---|
+| `SpeakLeash/bielik-minitron-7B-v3.0-instruct:Q4_K_M` | `6660954d0758` |
+| `llama3.1:8b-instruct-q4_K_M` | `46e0c10c039e` |
+
+<details>
+<summary>Full digests</summary>
+
+```
+sha256:6660954d075803e09b7b1e281b1879cb19719d5e40c2e8c516383b3d9c368c10
+  SpeakLeash/bielik-minitron-7B-v3.0-instruct:Q4_K_M   (4,5 GB, verified 17.08.2026)
+
+sha256:46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e
+  llama3.1:8b-instruct-q4_K_M                          (4,9 GB, verified 17.08.2026)
+```
+</details>
+
+**A different ID is not a fault** — it means the publisher shipped a new build.
+The system will still work. But **the accuracy figures no longer apply to your
+installation**, because they were never measured on those weights. If that
+matters to you, re-run the measurement yourself: [`eval/README.md`](eval/README.md).
+
+> **Quantisation matters as much as the model.** `Q4_K_M` is not a detail to
+> improvise on. SpeakLeash's own model card warns that quantised models show
+> reduced quality and more hallucination — every number we publish already
+> includes that cost. Pulling a different quantisation makes your system
+> incomparable to ours in both directions.
 
 ## Step 4 — Download this project
 
@@ -175,6 +279,44 @@ http://127.0.0.1:8713
 **This is the whole point of the system.** Get into the habit: an answer you have
 not clicked through is not yet a finding.
 
+## Step 10 — Confirm your installation matches ours (optional, 2 minutes)
+
+Everything above can appear to work while something is quietly wrong. The test
+suite is how you check, and it is the same suite we run.
+
+```bash
+pip install pytest
+```
+
+```bash
+python -m pytest tests/ -q
+```
+
+**You should see**, after about two minutes:
+
+```
+582 passed, 105 skipped, 1 warning
+```
+
+**All three numbers are normal.** What they mean:
+
+- **582 passed** — if any fail, something is genuinely wrong; do not load real
+  case files until you know what.
+- **105 skipped** — tests needing Docker or the measurement corpora, neither of
+  which this guide installs. Skipped is the correct outcome here, not a failure.
+- **1 warning** — deliberate. It reads:
+
+  > *J-3 = 82.0% — powyżej progu regresji 66%, ale PONIŻEJ CELU 90%.*
+
+  The system refuses to answer correctly 82% of the time, against a target of
+  90%. **We publish this as a warning on every single run rather than lowering
+  the target to match reality.** The gap is real and open. Nothing is broken.
+
+> **These tests do not need the model, the internet or your documents.** They
+> check the code. To reproduce the *accuracy* figures you also need the corpora
+> and a 70–80 minute run — [`eval/README.md`](eval/README.md) explains how, and
+> why we require the full 100 cases rather than a faster subset.
+
 ---
 
 ## When something goes wrong
@@ -200,12 +342,39 @@ case with no citations and no explanation why. Run OCR elsewhere first, then
 upload the result.
 
 **An answer takes several minutes**
-Normal for a question about a whole large case: the system falls back to reading
-document by document. **Tick a single document instead** — measured four times
-more accurate and four times faster. Selecting less genuinely gives you more.
+Two different causes — check which one you have:
+
+```bash
+ollama ps
+```
+
+Look at the **PROCESSOR** column while a question is running.
+
+- **`100% GPU`** — the model is on the graphics card, so this is the other cause:
+  a question about a whole large case makes the system read document by document.
+  **Tick a single document instead** — measured four times more accurate and four
+  times faster. Selecting less genuinely gives you more.
+- **`100% CPU` or a split like `40%/60% CPU/GPU`** — the model did not fit on your
+  card. This is a hardware limit, not a setting; see
+  [Step 0](#step-0--will-it-run-on-your-computer). Close other programs using the
+  graphics card (browsers with hardware acceleration, games, video calls) and
+  restart Ollama — that alone often frees enough.
+
+**"model requires more system memory than is available" / Ollama crashes on load**
+Not enough memory for the model. On a machine without a suitable graphics card
+the model needs **5,4 GB of RAM** on top of everything else you are running —
+16 GB total is the realistic floor. Close other programs and try again; if it
+still fails, this machine cannot run it. See
+[Step 0](#step-0--will-it-run-on-your-computer).
 
 **Answers are poor quality**
-Check that Step 6 was applied and Ollama was restarted afterwards.
+Three things to check, in this order:
+
+1. Step 6 was applied **and Ollama restarted afterwards**.
+2. `ollama list` shows the IDs from [Step 3](#step-3--download-the-two-language-models).
+   A different model is a different system.
+3. You did not edit `num_ctx` in the `Modelfile`s. 8192 is measured, not
+   arbitrary — raising it costs VRAM and pushes the model onto the processor.
 
 ---
 
