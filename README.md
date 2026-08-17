@@ -1,4 +1,4 @@
-# Before anything else: please help a dog shelter in Wrocław 🐕
+# Before anything else: please help an animal shelter in Wrocław 🐕
 
 **This software is free. If it saves you time or money, please consider giving
 that value to animals who have nothing.**
@@ -6,17 +6,18 @@ that value to animals who have nothing.**
 ### 👉 [ratujemyzwierzaki.pl/schroniskowroclaw](https://www.ratujemyzwierzaki.pl/schroniskowroclaw)
 
 **TOZ Schronisko dla Bezdomnych Zwierząt we Wrocławiu** — the *TOZ Shelter for
-Homeless Animals in Wrocław* — has been rescuing animals **since 1962**. It is
+Homeless Animals in Wrocław* — has been rescuing animals **since 1962**. Situated
 at 2 Ślazowa Street in Wrocław-Osobowice, run by **just over 30 employees**, some
 of whom are also inspectors for the Polish Society for the Prevention of Cruelty
-to Animals. They currently care for roughly **170 dogs and 140 cats**.
+to Animals. They currently care for roughly **170 dogs and 140 cats**, plus
+rabbits, parrots, snakes and eleven Vietnamese pigs.
 
 > *"Together with the Volunteers who support us, we strive for one thing — to
 > help those who cannot ask for it themselves."*
 
-> **The donation page is in Polish only** — but it translates cleanly. In Chrome,
+> **The donation page is in Polish only** — but it's possible to translate it using the internet browser. In Chrome,
 > right-click anywhere on the page and choose **Translate to English** (Edge,
-> Firefox and Safari all have the same feature). Payment works the same
+> Firefox and Safari all have the same feature). The payment method works in the same way,
 > regardless of language.
 
 > ### ⚠️ This is not our fundraiser.
@@ -27,41 +28,27 @@ to Animals. They currently care for roughly **170 dogs and 140 cats**.
 > attention more than we deserve your payment.
 >
 > Every złoty goes directly to the shelter through **ratujemyzwierzaki.pl**,
-> a Polish donation platform. Verify it yourself before giving — we would rather
-> you check than trust us.
+> a Polish donation platform. Verify it yourself before donating.
 
 ### Why we are asking now
 
-**Winter is the hard season for every shelter.** Heating costs rise exactly when
-donations fall. Food stocks run down. Medicine for older and sick animals — the
-ones nobody adopts — becomes the first thing a stretched budget cannot cover.
+**Winter is coming, and it's the hardest season that the shelter faces.** Cold weather
+drives up every cost at once: heating itself can run into thousands of złoty per
+month, animals need higher-calorie food just to keep their body temperature up,
+and vets see a spike in frostbite and respiratory infections among the older
+and sicker animals — the ones nobody adopts first. Winter is also a time when
+shelters see an influx of animals given up as unwanted Christmas gifts.
 
-Their three open fundraisers, **as checked on 17 August 2026**:
-
-| Fundraiser | Raised | Still needed |
-|---|---:|---:|
-| *Dla nich najważniejsza meta to własny dom!* | 2 696,37 zł | 27 303,63 zł |
-| *Koci sezon trwa!* (~300 cats in care) | 4 128 zł | 5 872 zł |
-| *Leczymy bezdomniaki* (veterinary care) | 3 757 zł | 46 243 zł |
-
-> **These numbers are a snapshot, not a live figure.** They change every day.
-> Open the link above for the real state — never rely on a table in a README.
+These aren't abstract problems — they're real bills for heating, food, and vet care. 
+That's what your donation goes toward.
 
 You can give **10, 20, 50 or 100 zł once**, or **20–50 zł monthly**. You can also
-"virtually adopt" a specific animal. Small and regular beats large and never.
+"virtually adopt" a specific animal.
 
-### Why we are giving this away
 
-This system took real work: measured, tested, documented. It could have been sold
-to law firms — that market pays well, and there is no good local-only competitor
-in Polish.
-
-We would rather it be free and have the shelter get the money instead.
-
-If you are a law firm and this replaces a paid tool, please donate roughly what
-you would have paid. If you are a student, a solo practitioner, or just curious —
-use it, donate nothing, and enjoy it. **No one is checking. There is no licence
-key. Nothing phones home.** The request above is a request, never a condition.
+If you are a law firm and this replaces a paid tool, please donate. If you are a student, a solo practitioner, or just curious —
+use it and enjoy it. **No one is checking. There is no licence
+key.** The request above is a request, never a condition.
 
 ---
 ---
