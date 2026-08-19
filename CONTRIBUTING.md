@@ -32,12 +32,19 @@ as an incident rather than a bug.
 ## Before you open a pull request
 
 ```bash
-python -m pytest tests/ -q
+python -m pytest tests/ -q --dozwol-pominiecie
 ```
 
-Expected: `582 passed, 105 skipped, 1 warning`. The skips need Docker or the
-measurement corpora; the warning is the deliberate J-3 gap. Anything failing is
-a genuine failure.
+Expected: `569 passed, 121 skipped, 1 warning`. The skips need Docker, the
+OpenContracts fork or the measurement corpora; the warning is the deliberate
+J-3 gap. Anything failing is a genuine failure.
+
+⚠️ **Without `--dozwol-pominiecie` you get 14 failures on a fresh clone, and
+they are not bugs.** The isolation gates fail rather than skip when the fork or
+Docker is missing — a security gate that quietly passes when it could not run
+reports success it never verified. The flag is how you acknowledge they did not
+run. On a machine holding real case files they must actually pass, not be
+skipped.
 
 The suite must run on **Python 3.11, 3.12 and 3.13** — CI checks all three. This
 matters more than it sounds: a syntax feature added in 3.12 once shipped to
