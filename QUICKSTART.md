@@ -232,6 +232,99 @@ export OLLAMA_NUM_PARALLEL=1
 Then **restart Ollama** (quit it from the tray/menu bar and start it again).
 Settings only apply to a fresh start.
 
+## Step 6b - Optional: OCR for scanned files
+
+**Skip this if your case files are digital PDFs, Word or text.** Come back to it
+the first time the system refuses a scan.
+
+Without OCR the system **refuses** a PDF that contains only an image, and that
+refusal is correct: loading it as an empty document would give you a case with
+no citations and no explanation why. With OCR, that scan becomes readable text —
+at a cost described below.
+
+### Install Tesseract
+
+**Windows** — installer from
+[UB Mannheim](https://github.com/UB-Mannheim/tesseract/wiki) (the usual Windows
+build). Accept the default location.
+
+**macOS**
+
+```bash
+brew install tesseract
+```
+
+**Linux (Debian/Ubuntu)**
+
+```bash
+sudo apt install tesseract-ocr
+```
+
+### Add the Polish language pack
+
+⚠️ **The English pack is not a substitute.** Reading a Polish document with the
+English engine returns text that *looks* right and has **no diacritics at all**:
+
+```
+pol:  Sąd Okręgowy … oddalił wniosek obrońcy o dopuszczenie
+eng:  Sad Okregowy … oddalit wniosek obroncy 0 dopuszezenie
+```
+
+The system refuses rather than falling back to English, so without this file OCR
+stays off.
+
+Download `pol.traineddata` from
+[tesseract-ocr/tessdata_best](https://github.com/tesseract-ocr/tessdata_best)
+and put it in **`models/tessdata/`** inside this project — not in the Tesseract
+installation folder. That way it needs no administrator rights and the version
+is pinned in [`models/manifest.md`](models/manifest.md).
+
+```bash
+mkdir -p models/tessdata
+```
+
+**Windows** (PowerShell, from the project folder):
+
+```powershell
+Invoke-WebRequest -Uri "https://github.com/tesseract-ocr/tessdata_best/raw/main/pol.traineddata" -OutFile "models/tessdata/pol.traineddata"
+```
+
+**macOS / Linux**
+
+```bash
+curl -L -o models/tessdata/pol.traineddata https://github.com/tesseract-ocr/tessdata_best/raw/main/pol.traineddata
+```
+
+**Verify it** — the file is 11,4 MB and its `sha256` must be:
+
+```
+e80cc4cefbdface06e9223f43f089556b9dcf104020fbc0a200f6863c57d4405
+```
+
+```powershell
+Get-FileHash models/tessdata/pol.traineddata -Algorithm SHA256
+```
+
+```bash
+sha256sum models/tessdata/pol.traineddata
+```
+
+### ⚠️ What OCR changes about the core promise
+
+This system promises that *a citation points to an exact character in the case
+file*. For a document read by OCR the true sentence is different:
+
+> a citation points to an exact character **in the reading of a scan**
+
+That reading is wrong most often in **signatures, amounts and dates** — exactly
+where procedural deadlines are decided. In our measurement a handwritten date
+came out as `4 9.03.2026`.
+
+So the system never turns OCR on by itself. A refused scan shows a **Rozpoznaj
+pismo (OCR)** button; the document you get carries a permanent `z OCR` marker,
+and every citation from it warns you to check the original. Measured results and
+limits: [`docs/23-wczytywanie-i-ocr.md`](docs/23-wczytywanie-i-ocr.md).
+
 ## Step 7 - Start the system
 
 ```bash
@@ -352,10 +445,13 @@ Something else is using it - most often an older copy of this system still
 running. Close it, or change `PORT` at the top of `panel/serwer.py`.
 
 **"PDF nie zawiera tekstu, a jedynie obraz - to skan"**
-Correct behaviour, not a fault. **This system has no OCR.** A scan without a text
-layer is refused rather than loaded as empty - an empty document would produce a
-case with no citations and no explanation why. Run OCR elsewhere first, then
-upload the result.
+Correct behaviour, not a fault. A scan without a text layer is refused rather
+than loaded as empty — an empty document would produce a case with no citations
+and no explanation why.
+
+If you installed OCR (**Step 6b**), the message comes with a **Rozpoznaj pismo
+(OCR)** button. If you did not, install it now or run OCR elsewhere and upload
+the result.
 
 **An answer takes several minutes**
 Two different causes - check which one you have:
