@@ -147,6 +147,10 @@ mark.cytowane{background:#fde68a;box-shadow:0 0 0 3px #fde68a;border-radius:2px}
                   border:1px solid var(--ostrzezenie)}
   .znacznik.niezweryfikowane{background:var(--tlo);color:var(--przygaszony);
                              border:1px solid var(--przygaszony)}
+/* Pochodzenie z OCR-u wyróżnione mocniej niż stopień wsparcia: to
+   informacja o ŹRÓDLE, nie o jakości dopasowania. */
+  .znacznik.ocr{background:var(--ostrzezenie-tlo);color:var(--ostrzezenie);
+                border:1px solid var(--ostrzezenie);font-weight:800}
   .cytat .uwaga-kontroli{display:block;font-size:.73rem;margin-top:.3rem;
                          color:var(--ostrzezenie);font-weight:600}
 /* Błąd kontroli niezależnej — nie znacznik, tylko widoczny komunikat.
@@ -1128,6 +1132,14 @@ let sprawaAktywna=null, dokumentAktywny=null, sondowanie=null;
 /* Dokumenty zaznaczone kwadracikiem — wybór PRAWNIKA, którego system
    nie zawęża po swojemu (agent._zawez_dokumenty, wybor_uzytkownika). */
 let zaznaczone = new Set(), dokumentyWszystkie = [];
+/* Ostatnio wgrywane pliki — żeby „Rozpoznaj pismo" nie kazało wybierać
+   ich po raz drugi. */
+let ostatnioWgrywane = null;
+
+async function ponowZOcr(){
+  if(!ostatnioWgrywane){ alert('Wybierz plik ponownie.'); return; }
+  await wgrajPliki(ostatnioWgrywane, true);
+}
 
 const api=async(s,o={})=>{
   const r=await fetch(s,{headers:{'Content-Type':'application/json; charset=utf-8'},...o});
@@ -1783,7 +1795,9 @@ async function wczytajDokumenty(){
             onclick="event.stopPropagation()"></label>
          <span onclick="zawezDo(${d.id})" style="cursor:pointer">
            <span class="syg">${esc(d.nazwa)}</span>
-           <span class="meta">${esc(d.rodzaj)} · ${d.dlugosc} zn.</span></span></div>`).join('')
+           <span class="meta">${esc(d.rodzaj)} · ${d.dlugosc} zn.${
+             d.zrodlo_tekstu==='ocr' ? ' · <b style="color:var(--ostrzezenie)">z OCR</b>' : ''
+           }</span></span></div>`).join('')
     : '<div class="pusto">Brak dokumentów.</div>');
   await odswiezStrategie();
 }
@@ -1835,7 +1849,10 @@ async function odswiezStrategie(){
    warstwy tekstowej albo plik w pomylonej stronie kodowej NIE wchodzi
    do akt — wpuszczenie go zamieniłoby weryfikację cytatów w teatr:
    cytat zgadzałby się znak w znak ze zniekształconym źródłem.        */
-async function wgrajPliki(pliki){
+/* `ocr` domyślnie WYŁĄCZONE. Rozpoznawanie obrazu zamienia treść pisma
+   na jej odczyt, więc obniża rangę cytatu — musi być świadomą decyzją,
+   a nie zachowaniem domyślnym.                                        */
+async function wgrajPliki(pliki, ocr){
   if(!sprawaAktywna){alert('Najpierw wybierz sprawę.');return;}
   if(!pliki || !pliki.length) return;
 
@@ -1845,6 +1862,7 @@ async function wgrajPliki(pliki){
 
   const dane = new FormData();
   dane.append('rodzaj', val('d-rodzaj') || 'pismo');
+  if(ocr) dane.append('ocr', '1');
   for(const p of pliki) dane.append('pliki', p, p.name);
 
   let w;
@@ -1867,15 +1885,27 @@ async function wgrajPliki(pliki){
   for(const d of (w.odrzucone||[])){
     czesci.push(`<div class="wgrany-blad"><b>✕ ${esc(d.nazwa)} — nie wczytano</b>
       <div>${esc(d.powod)}</div>
-      ${d.wymaga_ocr?`<div class="opis" style="margin-top:.3rem">
-        Ten plik wymaga OCR-u. Rozpoznaj tekst w programie, w którym
-        otwierasz skany, zapisz jako PDF z warstwą tekstową albo DOCX
-        i wgraj ponownie.</div>`:''}
+      ${d.wymaga_ocr ? (d.ocr_dostepny
+        ? `<div class="opis" style="margin-top:.4rem">
+             To skan — tekstu nie ma w pliku, jest tylko obraz.
+             <button onclick="ponowZOcr()" style="margin-left:.3rem">
+               Rozpoznaj pismo (OCR)</button>
+             <div style="margin-top:.3rem">⚠️ Odczyt obrazu bywa różny od
+               pisma, najczęściej w sygnaturach, kwotach i datach. Dokument
+               dostanie trwały znacznik, a każdy cytat z niego —
+               ostrzeżenie.</div>
+           </div>`
+        : `<div class="opis" style="margin-top:.3rem">
+             Ten plik wymaga OCR-u, a OCR nie jest na tym komputerze
+             dostępny. Rozpoznaj tekst w swoim programie do skanów, zapisz
+             jako PDF z warstwą tekstową albo DOCX i wgraj ponownie.</div>`)
+        : ''}
     </div>`);
   }
   if(w.blad) czesci.push(`<div class="blad">${esc(w.blad)}</div>`);
   cel.innerHTML = czesci.join('');
 
+  ostatnioWgrywane = pliki;
   document.getElementById('d-pliki').value = '';
   await wczytajDokumenty(); await wczytajSprawy();
 }
@@ -2035,6 +2065,16 @@ function pokazBlad(t){
    pokazywana. Kolejność sprawdzania odpowiada mocy dowodu: werdykt
    kontrolera przed pokryciem leksykalnym, bo kontroler czyta sens,
    a pokrycie liczy słowa.                                             */
+/* Pochodzenie tekstu. Stoi PRZED znacznikiem kontroli, bo odpowiada na
+   pytanie wcześniejsze: czy to w ogóle jest treść pisma, czy jej odczyt.
+   Cytat „sprawdzony" z OCR-u nadal jest sprawdzony wobec ODCZYTU.     */
+function znacznikZrodla(c){
+  if(c.zrodlo_tekstu !== 'ocr') return '';
+  return '<span class="znacznik ocr" title="Tekst pochodzi z rozpoznania '+
+         'obrazu. Odczyt bywa różny od pisma — sprawdź przy oryginale.">'+
+         'z OCR</span>';
+}
+
 function znacznikWsparcia(c){
   if(c.kontrola === 'prawda')
     return '<span class="znacznik mocne" title="Niezależna kontrola na czystym '+
@@ -2060,6 +2100,8 @@ const LEGENDA = `<div class="legenda">
   modelu. &nbsp;·&nbsp;
   <b>niezweryfikowane</b> — kontrola nie zadziałała; brak potwierdzenia
   nie jest potwierdzeniem. &nbsp;·&nbsp;
+  <b>z OCR</b> — dokument powstał z rozpoznania obrazu; cytat wskazuje
+  znak w ODCZYCIE skanu, nie w piśmie. &nbsp;·&nbsp;
   Każdy cytat pozostaje klikalny — najpewniejszym sprawdzeniem jest
   zawsze zajrzenie do akt.
 </div>`;
@@ -2128,9 +2170,10 @@ function renderuj(w){
              onclick="pokazZrodlo('${c.dokument_id}',${c.poczatek},${c.koniec})"
              title="Pokaż ten fragment w dokumencie">
           <div class="zrodlo">${esc(u.dokument)} · znaki ${c.poczatek}–${c.koniec}
-            ${znacznikWsparcia(c)}
+            ${znacznikZrodla(c)}${znacznikWsparcia(c)}
             <span class="lupa">otwórz w aktach ↗</span></div>
           „${esc(c.fragment)}”
+          ${c.ostrzezenie_zrodla?`<span class="uwaga-kontroli">⚠ ${esc(c.ostrzezenie_zrodla)}</span>`:''}
           ${c.ostrzezenie?`<span class="uwaga-kontroli">⚠ ${esc(c.ostrzezenie)}</span>`:''}
         </div>`).join('')}
       </div>`).join('')+

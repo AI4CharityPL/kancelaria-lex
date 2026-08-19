@@ -71,6 +71,13 @@ class BladWczytywania(ValueError):
     """Błąd do pokazania użytkownikowi wprost."""
 
 
+# Skąd wziął się tekst dokumentu. Znacznik jedzie do bazy i dalej do
+# każdego cytatu — patrz `ZRODLA` niżej.
+ZRODLO_WKLEJONY = "wklejony"
+ZRODLO_PLIK = "plik"
+ZRODLO_OCR = "ocr"
+
+
 @dataclass
 class Wynik:
     tekst: str
@@ -78,6 +85,14 @@ class Wynik:
     znakow: int = 0
     ostrzezenia: list[str] = field(default_factory=list)
     wymaga_ocr: bool = False
+    # ⚠️ POCHODZENIE TEKSTU JEST CZĘŚCIĄ WYNIKU, NIE METADANĄ.
+    #
+    # Tekst z pliku cyfrowego jest treścią pisma. Tekst z OCR-u jest
+    # ODCZYTEM obrazu — bywa różny od pisma, zwłaszcza w sygnaturach,
+    # kwotach i datach. Cytat z jednego i z drugiego wygląda tak samo,
+    # więc różnicę musi nieść dokument, a nie pamięć prawnika.
+    zrodlo: str = ZRODLO_PLIK
+    stron_ocr: int = 0
 
     @property
     def nadaje_sie(self) -> bool:
@@ -271,6 +286,7 @@ def _z_docx(dane: bytes) -> str:
 #   4. bramka jakości na końcu — jeżeli cokolwiek poszło źle, odmawiamy.
 
 _OBIEKT = re.compile(rb"(\d+)\s+(\d+)\s+obj(.*?)endobj", re.DOTALL)
+_OBRAZ = re.compile(rb"/Subtype\s*/Image")
 _STRUMIEN = re.compile(rb"stream\r?\n(.*?)\r?\nendstream", re.DOTALL)
 _TOUNICODE = re.compile(rb"/ToUnicode\s+(\d+)\s+\d+\s+R")
 _FONT_ZASOB = re.compile(rb"/(\w+)\s+(\d+)\s+\d+\s+R")
@@ -370,13 +386,45 @@ def _na_znaki(surowy: bytes, mapa: dict[int, str] | None) -> str:
     return surowy.decode("cp1252", errors="replace")
 
 
+# ⚠️ `Td` NIE ZAWSZE OZNACZA NOWY WIERSZ — USTERKA ZMIERZONA 19.08.2026.
+#
+# Wcześniej każdy operator pozycjonowania dawał przełamanie wiersza.
+# Generatory PDF ustawiają jednak pozycję OSOBNO DLA KAŻDEGO ZNAKU, więc
+# poprawnie odczytany tekst wychodził rozsypany na litery: zamiast
+# „Contact" powstawało siedem wierszy po jednej literze.
+#
+# `Td` przyjmuje przesunięcie `tx ty`. Nowy wiersz jest wtedy i tylko
+# wtedy, gdy zmienia się WSPÓŁRZĘDNA PIONOWA. Przesunięcie poziome to
+# odstęp w tej samej linii — duże daje spację, małe nie daje nic.
 _TEKST_W_STRUMIENIU = re.compile(
     rb"/(\w+)\s+[\d.]+\s+Tf"                     # 1: wybór fontu
     rb"|\((?:[^()\\]|\\.|\([^()]*\))*\)\s*Tj"    # literal + Tj
     rb"|\[(?:[^\[\]\\]|\\.)*\]\s*TJ"             # tablica + TJ
     rb"|<([0-9A-Fa-f\s]+)>\s*Tj"                 # 2: hex + Tj
-    rb"|(T\*|Td|TD|'|\"|ET)",                    # 3: przejścia wiersza
+    rb"|(-?[\d.]+)\s+(-?[\d.]+)\s+(?:Td|TD)"     # 3,4: przesunięcie
+    rb"|(T\*|'|\"|ET)",                          # 5: bezwarunkowy wiersz
     re.DOTALL)
+
+# ⚠️ ODSTĘP DOKŁADAMY SKĄPO — ZMIERZONE 19.08.2026.
+#
+# Próg jest UŁAMKIEM ROZMIARU FONTU, nie wartością bezwzględną: te same
+# jednostki znaczą co innego przy stopniu 12 i przy 42.
+#
+# Rozkład przesunięć poziomych na pliku testowym (3294 próbki, font 12-13):
+#
+#     kwantyl 0,10   3,15        kwantyl 0,75   7,14
+#     kwantyl 0,50   6,41        kwantyl 0,97  10,38
+#
+# Odstępy międzyliterowe i międzywyrazowe NIE rozdzielają się progiem —
+# rozkład jest jednomodalny. Powód jest prosty: ten generator wstawia
+# spacje jako osobne glify, więc nie ma czego dokładać. Próg 1,2 dawał
+# „C o n t a c t” zamiast „Contact” i psuł 6053 znaki na 3524 poprawne.
+#
+# Dlatego dokładamy spację wyłącznie przy skoku WYRAŹNIE większym niż
+# szerokość znaku — taki występuje w PDF-ach bez glifu spacji, gdzie
+# wyrazy rozstawia się pozycją. Pomyłka w tę stronę skleja dwa wyrazy;
+# pomyłka w drugą rozbija każdy wyraz na litery. Pierwsza jest tańsza.
+UDZIAL_ODSTEPU = 1.5
 
 _LITERAL = re.compile(rb"\((?:[^()\\]|\\.|\([^()]*\))*\)")
 _HEX = re.compile(rb"<([0-9A-Fa-f\s]+)>")
@@ -388,16 +436,38 @@ def _tekst_ze_strumienia(strumien: bytes,
     """Tekst z jednego strumienia treści, z podziałem na wiersze."""
     czesci: list[str] = []
     biezaca: dict[int, str] | None = None
+    rozmiar_fontu = 0.0
 
     for dopasowanie in _TEKST_W_STRUMIENIU.finditer(strumien):
         calosc = dopasowanie.group(0)
 
         if dopasowanie.group(1):                       # /F1 12 Tf
             biezaca = mapy.get(dopasowanie.group(1).decode("ascii", "ignore"))
+            # Rozmiar fontu steruje progiem odstępu — patrz UDZIAL_ODSTEPU.
+            stopien = re.search(rb"([0-9.]+)[ ]+Tf", calosc)
+            if stopien:
+                try:
+                    rozmiar_fontu = float(stopien.group(1))
+                except ValueError:
+                    pass
             continue
 
-        if dopasowanie.group(3):                       # koniec wiersza
+        if dopasowanie.group(5):                       # T*, ', ", ET
             czesci.append("\n")
+            continue
+
+        if dopasowanie.group(3) is not None:           # tx ty Td
+            try:
+                poziomo = float(dopasowanie.group(3))
+                pionowo = float(dopasowanie.group(4))
+            except ValueError:
+                continue
+            # Nowy wiersz TYLKO przy zmianie pionu. Przesunięcie
+            # poziome to odstęp w tej samej linii.
+            if pionowo != 0:
+                czesci.append("\n")
+            elif poziomo > UDZIAL_ODSTEPU * (rozmiar_fontu or 10.0):
+                czesci.append(" ")
             continue
 
         if dopasowanie.group(2):                       # <hex> Tj
@@ -469,19 +539,59 @@ def _z_pdf(dane: bytes) -> str:
                 mapy[nazwa.decode("ascii", "ignore")] = mapa
         mapy.setdefault(f"__obj{numer}", mapa)
 
-    # Powiązanie nazw zasobów z fontami po stronie stron dokumentu.
+    # ── POWIĄZANIE NAZWY ZASOBU Z FONTEM ────────────────────────────
+    #
+    # ⚠️ USTERKA ZMIERZONA 19.08.2026 — POWÓD, DLA KTÓREGO PDF-Y WYCHODZIŁY
+    #    JAKO ŚMIECI MIMO POPRAWNIE ZBUDOWANYCH MAP.
+    #
+    # Wcześniej stało tu `re.search(rb"/Font\s*<<(.*?)>>", cialo)`. Słownik
+    # zasobów jest jednak ZAGNIEŻDŻONY — `/Font << /F4 4 0 R /F6 6 0 R >>`
+    # bywa poprzedzony `/XObject << ... >>`, a `(.*?)>>` zatrzymuje się na
+    # pierwszym `>>`, czyli zwykle nie na tym właściwym.
+    #
+    # Zmierzone na pliku testowym: 10 map ToUnicode zbudowanych, 10 fontów
+    # użytych w operatorach `Tf`, ZERO powiązań. Każdy znak szedł więc
+    # ścieżką zapasową cp1252 i wychodził jako przypadkowy bajt.
+    #
+    # Wiązanie idzie teraz po całym dokumencie: nazwa `/Fxx` przypisana
+    # numerowi obiektu, dla którego mamy mapę. Nie jest to pełny rozbiór
+    # zasobów per strona — ale generatory PDF numerują fonty unikatowo
+    # w obrębie pliku, a wynik i tak przechodzi przez bramkę jakości,
+    # która złapie ewentualne pomieszanie.
     for _, (cialo, _) in obiekty.items():
-        zasoby = re.search(rb"/Font\s*<<(.*?)>>", cialo, re.DOTALL)
-        if not zasoby:
-            continue
-        for nazwa, wskazanie in _FONT_ZASOB.findall(zasoby.group(1)):
+        for nazwa, wskazanie in _FONT_ZASOB.findall(cialo):
             klucz = f"__obj{int(wskazanie)}"
             if klucz in mapy:
-                mapy[nazwa.decode("ascii", "ignore")] = mapy[klucz]
+                mapy.setdefault(nazwa.decode("ascii", "ignore"), mapy[klucz])
 
     strony: list[str] = []
     for _, (cialo, tresc) in obiekty.items():
-        if not tresc or b"/Image" in cialo:
+        if not tresc:
+            continue
+        # ⚠️ SŁOWNIK OBIEKTU, NIE CAŁE CIAŁO — USTERKA ZMIERZONA 19.08.2026.
+        #
+        # Wcześniej stało tu `b"/Image" in cialo`, czyli szukanie w CAŁYM
+        # obiekcie razem ze skompresowanym strumieniem. Zamiarem było
+        # pominięcie obrazów; skutkiem — odrzucenie CAŁEGO strumienia
+        # treści strony, gdy tylko gdziekolwiek w nim trafił się ciąg
+        # „/Image". A trafia się zawsze, gdy strona ma logo, pieczątkę,
+        # podpis albo tło.
+        #
+        # Skutek na 173 rzeczywistych PDF-ach: 85 dokumentów Z WARSTWĄ
+        # TEKSTOWĄ zwracało zero znaków i bramka jakości uznawała je za
+        # skany. Pisma procesowe mają nagłówek kancelarii i pieczęć
+        # niemal zawsze, więc trafiało to w przypadek typowy, nie brzegowy.
+        #
+        # Teraz sprawdzamy wyłącznie SŁOWNIK obiektu — czyli to, co stoi
+        # przed słowem kluczowym `stream`.
+        # ⚠️ PARA `/Subtype /Image`, NIE SAM CIĄG `/Image`.
+        #
+        # Słownik strony niesie `/ProcSet [/PDF /Text /ImageB /ImageC]`,
+        # więc zwykłe szukanie `/Image` trafia w `/ImageB` i odrzuca
+        # stronę, która żadnym obrazem nie jest. Pierwsza poprawka tej
+        # usterki wpadła dokładnie w tę pułapkę i nie zmieniła nic.
+        slownik = cialo.split(b"stream", 1)[0]
+        if _OBRAZ.search(slownik):
             continue
         if not re.search(rb"\bBT\b", tresc):
             continue
@@ -575,8 +685,14 @@ def _porzadkuj(tekst: str) -> str:
     return tekst.strip()
 
 
-def wczytaj(nazwa: str, dane: bytes) -> Wynik:
-    """Treść pliku jako tekst, z oceną, czy nadaje się na źródło cytatów."""
+def wczytaj(nazwa: str, dane: bytes, ocr_dozwolony: bool = False) -> Wynik:
+    """Treść pliku jako tekst, z oceną, czy nadaje się na źródło cytatów.
+
+    `ocr_dozwolony` włącza rozpoznawanie pisma dla plików, które bramka
+    jakości odrzuciła. Jest WYŁĄCZONE domyślnie i musi być świadomą
+    decyzją: OCR zamienia treść pisma na jej odczyt, więc obniża rangę
+    cytatu. Zobacz `panel/ocr.py`.
+    """
     if not dane:
         raise BladWczytywania("Plik jest pusty.")
     if len(dane) > MAKS_BAJTOW:
@@ -607,6 +723,43 @@ def wczytaj(nazwa: str, dane: bytes) -> Wynik:
             "Plik był zapisany w pomylonej stronie kodowej (cp1252 zamiast "
             "cp1250) — polskie znaki zostały odtworzone. Sprawdź na oko "
             "pierwsze zdania, zanim oprzesz na tym dokumencie pismo."))
+
+    # ── OCR, gdy warstwa tekstowa zawiodła ───────────────────────────
+    #
+    # ⚠️ OSTATNIA DESKA, NIE PIERWSZY WYBÓR.
+    #
+    # Sięgamy po OCR wyłącznie wtedy, gdy bramka jakości odrzuciła tekst
+    # z pliku — czyli plik jest skanem albo ma fonty nie do odczytania.
+    # Nigdy „na wszelki wypadek": odczyt obrazu jest gorszy od warstwy
+    # tekstowej zawsze, gdy ta druga da się przeczytać.
+    if wymaga_ocr and ocr_dozwolony and typ == "pdf":
+        import ocr as mod_ocr
+
+        try:
+            rozpoznane = mod_ocr.z_pdf(dane, jezyk="pl")
+        except mod_ocr.BladOCR as e:
+            ostrzezenia.append(f"OCR nie powiódł się: {e}")
+            return Wynik(tekst=tekst, typ=typ, znakow=len(tekst),
+                         ostrzezenia=ostrzezenia, wymaga_ocr=True)
+
+        tekst_ocr = _porzadkuj(rozpoznane.tekst)
+        ostrzezenia_ocr, nadal_zle = ocen_jakosc(tekst_ocr, 0, "ocr")
+        if nadal_zle or not tekst_ocr.strip():
+            ostrzezenia.append(
+                "OCR zwrócił tekst, którego nie da się użyć jako źródła "
+                "cytatów. Dokument NIE został wczytany.")
+            return Wynik(tekst=tekst, typ=typ, znakow=len(tekst),
+                         ostrzezenia=ostrzezenia, wymaga_ocr=True)
+
+        return Wynik(
+            tekst=tekst_ocr, typ=typ, znakow=len(tekst_ocr),
+            ostrzezenia=[
+                "Tekst pochodzi z ROZPOZNANIA OBRAZU (OCR), nie z pliku. "
+                "Odczyt bywa różny od pisma — najczęściej w sygnaturach, "
+                "kwotach i datach. Każdy cytat z tego dokumentu sprawdź "
+                "przy oryginale.",
+                *ostrzezenia_ocr, *rozpoznane.ostrzezenia],
+            wymaga_ocr=False, zrodlo=ZRODLO_OCR, stron_ocr=rozpoznane.stron)
 
     return Wynik(tekst=tekst, typ=typ, znakow=len(tekst),
                  ostrzezenia=ostrzezenia, wymaga_ocr=wymaga_ocr)

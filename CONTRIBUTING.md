@@ -35,7 +35,7 @@ as an incident rather than a bug.
 python -m pytest tests/ -q --dozwol-pominiecie
 ```
 
-Expected: `569 passed, 121 skipped, 1 warning`. The skips need Docker, the
+Expected: `577 passed, 123 skipped, 1 warning`. The skips need Docker, the
 OpenContracts fork or the measurement corpora; the warning is the deliberate
 J-3 gap. Anything failing is a genuine failure.
 

@@ -36,7 +36,11 @@ docs/00-wejscie/
 eval/korpus-rzeczywisty/
 eval/sprawa-lacey/
 
-# Wagi modeli — duże i niezmienne; w repo tylko manifesty i sumy
+# Wagi modeli — duże i niezmienne; w repo tylko manifesty i sumy.
+# Dane językowe Tesseracta też są wagami (pol.traineddata to 11,4 MB),
+# więc idą tą samą drogą: plik poza repozytorium, suma kontrolna
+# w models/manifest.md.
+models/**/*.traineddata
 models/**/*.gguf
 models/**/*.safetensors
 models/**/*.bin
