@@ -20,9 +20,13 @@ license = "MIT"
 license-files = ["LICENSE"]
 keywords = ["prawo", "kancelaria", "rag", "lokalny-llm", "ollama", "legal-tech", "offline"]
 
-# ⚠️ AUTORZY — CELOWO NIEUZUPEŁNIENI. Do ustalenia przed publikacją paczki;
-# metadanych PyPI nie da się zmienić po wgraniu wersji.
-# authors = [{ name = "…", email = "…" }]
+# AUTORSTWO. Jedna osoba — projekt, kod, aparat pomiarowy i dokumentacja
+# zgodności; szczegóły w AUTHORS.md. Podany jest sam `name`, bez `email`:
+# metadanych PyPI nie da się zmienić po wgraniu wersji, a adres e-mail w polu
+# `authors` trafia do publicznych metadanych paczki na stałe. Sam `name` jest
+# poprawny wg PEP 621 i wystarcza; e-mail można dopisać świadomie przed
+# publikacją, jeśli ma tam być.
+authors = [{ name = "Krzysztof Augiewicz" }]
 
 classifiers = [
     "Development Status :: 5 - Production/Stable",
