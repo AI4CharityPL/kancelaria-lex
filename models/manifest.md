@@ -129,3 +129,20 @@ a18a44fad1d0b46ded15928144138cff1135d5cc8233bdd90be5f18822de09a7  model.safetens
 udostępnia intfloat na licencji MIT — do potwierdzenia przy każdej
 aktualizacji, tak samo jak przy Bieliku. Same pliki wag są wyłączone
 z repozytorium (`.gitignore`), bo ważą 1,1 GB.
+
+
+## Dane językowe OCR (Tesseract)
+
+Katalog `models/tessdata/`. Pliki **nie są wersjonowane** — pobiera się
+je raz i sprawdza sumą. `TESSDATA_PREFIX` wskazuje ten katalog, więc
+instalacja nie wymaga uprawnień administratora.
+
+| Plik | Rozmiar | sha256 | Źródło |
+|---|---:|---|---|
+| `pol.traineddata` | 11,4 MB | `e80cc4cefbdface06e9223f43f089556b9dcf104020fbc0a200f6863c57d4405` | `tesseract-ocr/tessdata_best` |
+| `eng.traineddata` | 3,9 MB | `7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2` | instalacja Tesseract 5.4.0 |
+| `osd.traineddata` | 10,1 MB | `9cf5d576fcc47564f11265841e5ca839001e7e6f38ff7f7aacf46d15a96b00ff` | instalacja Tesseract 5.4.0 |
+
+⚠️ **Polski jest wymagany, angielski nie jest zamiennikiem.** Rozpoznanie
+polskiego pisma silnikiem angielskim zwraca tekst bez znaków
+diakrytycznych — patrz [`docs/23-wczytywanie-i-ocr.md`](../docs/23-wczytywanie-i-ocr.md).

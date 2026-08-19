@@ -36,6 +36,7 @@ import przepisy as mod_przepisy  # noqa: E402
 import eksport as mod_eksport  # noqa: E402
 import kopia as mod_kopia  # noqa: E402
 import terminy as mod_terminy  # noqa: E402
+import ocr as mod_ocr  # noqa: E402
 import wczytywanie as mod_wczytywanie  # noqa: E402
 import zadania as mod_zadania  # noqa: E402
 
@@ -211,7 +212,11 @@ class Uchwyt(BaseHTTPRequestHandler):
         wczytane, odrzucone = [], []
         for nazwa, bajty in pliki:
             try:
-                wynik = mod_wczytywanie.wczytaj(nazwa, bajty)
+                # OCR wyłącznie na wyraźne życzenie — patrz `panel/ocr.py`.
+                wynik = mod_wczytywanie.wczytaj(
+                    nazwa, bajty,
+                    ocr_dozwolony=str(pola.get("ocr", "")).lower()
+                    in ("1", "true", "tak"))
             except mod_wczytywanie.BladWczytywania as e:
                 odrzucone.append({"nazwa": nazwa, "powod": str(e)})
                 continue
@@ -222,6 +227,9 @@ class Uchwyt(BaseHTTPRequestHandler):
                     "powod": " ".join(wynik.ostrzezenia) or
                              "Nie udało się wydobyć tekstu.",
                     "wymaga_ocr": wynik.wymaga_ocr,
+                    # Panel pokazuje przycisk „rozpoznaj" tylko wtedy, gdy
+                    # OCR jest faktycznie dostępny z polskim pakietem.
+                    "ocr_dostepny": mod_ocr.stan()["dostepny"],
                 })
                 baza.zapisz_audyt(
                     DB, "dokument.odrzucony", sprawa_id,
@@ -231,13 +239,16 @@ class Uchwyt(BaseHTTPRequestHandler):
             try:
                 dok_id = baza.dodaj_dokument(
                     DB, sprawa_id, nazwa, wynik.tekst,
-                    rodzaj=pola.get("rodzaj") or "pismo")
+                    rodzaj=pola.get("rodzaj") or "pismo",
+                    zrodlo_tekstu=wynik.zrodlo)
             except ValueError as e:
                 odrzucone.append({"nazwa": nazwa, "powod": str(e)})
                 continue
 
             wczytane.append({"id": dok_id, "nazwa": nazwa, "typ": wynik.typ,
                              "znakow": wynik.znakow,
+                             "zrodlo": wynik.zrodlo,
+                             "stron_ocr": wynik.stron_ocr,
                              "ostrzezenia": wynik.ostrzezenia})
             baza.zapisz_audyt(
                 DB, "dokument.wgrany", sprawa_id,
@@ -855,7 +866,8 @@ class Uchwyt(BaseHTTPRequestHandler):
             try:
                 dok_id = baza.dodaj_dokument(
                     DB, sprawa_id, nazwa, tresc,
-                    rodzaj=dane.get("rodzaj", "pismo"))
+                    rodzaj=dane.get("rodzaj", "pismo"),
+                    zrodlo_tekstu=mod_wczytywanie.ZRODLO_WKLEJONY)
             except ValueError as e:
                 return _json(self, {"blad": str(e)}, 404)
             return _json(self, {"id": dok_id}, 201)
@@ -949,6 +961,8 @@ class Uchwyt(BaseHTTPRequestHandler):
                  for d in baza.lista_dokumentow(DB, sprawa_id)}
         # Język rozpoznany przy wgraniu — steruje doborem modelu mapowania.
         jezyki = baza.jezyki_dokumentow(DB, sprawa_id)
+        # Pochodzenie tekstu — trafia na każdy cytat, patrz `analiza.analizuj`.
+        zrodla = baza.zrodla_dokumentow(DB, sprawa_id)
         # ────────────────────────────────────────────────────────────
 
         # Przepisy to ODRĘBNA przestrzeń — jawna, wspólna dla spraw,
@@ -979,7 +993,7 @@ class Uchwyt(BaseHTTPRequestHandler):
             wynik = analiza.analizuj(
                 pytanie, dokumenty, nazwy,
                 przepisy=tresci_p or None, nazwy_przepisow=nazwy_p,
-                postep=melduj, jezyki=jezyki,
+                postep=melduj, jezyki=jezyki, zrodla=zrodla,
             )
             slownik = wynik.na_slownik()
             if not wynik.blad:

@@ -281,8 +281,19 @@ def _domiguj(db) -> None:
     rozpoznawania języka wywracałaby zapytania na nieznanej kolumnie.
     """
     istniejace = {w["name"] for w in db.execute("PRAGMA table_info(dokumenty)")}
+    # ⚠️ `zrodlo_tekstu` — SKĄD WZIĄŁ SIĘ TEKST DOKUMENTU.
+    #
+    # „wklejony" (wprost do panelu), „plik" (TXT, MD, DOCX, RTF, PDF
+    # z warstwą tekstową) albo „ocr" (odczyt obrazu). Rozróżnienie jest
+    # potrzebne przy KAŻDYM cytacie: tekst z pliku jest treścią pisma,
+    # tekst z OCR-u jest jego odczytem i bywa różny — najczęściej
+    # w sygnaturach, kwotach i datach.
+    #
+    # Domyślna wartość dla dokumentów sprzed tej kolumny to „wklejony",
+    # bo panel nie miał wtedy innej drogi wejścia.
     for kolumna, definicja in (("jezyk", "TEXT DEFAULT ''"),
-                               ("jezyk_pewnosc", "REAL DEFAULT 0.0")):
+                               ("jezyk_pewnosc", "REAL DEFAULT 0.0"),
+                               ("zrodlo_tekstu", "TEXT DEFAULT 'wklejony'")):
         if kolumna not in istniejace:
             db.execute(f"ALTER TABLE dokumenty ADD COLUMN {kolumna} {definicja}")
     # Dopiero teraz — kolumna na pewno istnieje.
@@ -442,7 +453,8 @@ def pobierz_sprawe(db, sprawa_id: int) -> dict | None:
 # ── dokumenty — zawsze w obrębie sprawy ─────────────────────────────
 
 def dodaj_dokument(db, sprawa_id: int, nazwa: str, tresc: str,
-                   rodzaj: str = "pismo") -> int:
+                   rodzaj: str = "pismo",
+                   zrodlo_tekstu: str = "wklejony") -> int:
     """Dodaje dokument DO WSKAZANEJ SPRAWY.
 
     Nie istnieje wariant bez `sprawa_id` — dokument nie może zawisnąć
@@ -471,9 +483,10 @@ def dodaj_dokument(db, sprawa_id: int, nazwa: str, tresc: str,
 
     kursor = db.execute(
         "INSERT INTO dokumenty (sprawa_id, nazwa, rodzaj, tresc, jezyk, "
-        "jezyk_pewnosc, dodano) VALUES (?,?,?,?,?,?,?)",
+        "jezyk_pewnosc, dodano, zrodlo_tekstu) VALUES (?,?,?,?,?,?,?,?)",
         (sprawa_id, nazwa.strip(), rodzaj, tresc,
-         rozpoznanie.jezyk, round(rozpoznanie.pewnosc, 3), _teraz()),
+         rozpoznanie.jezyk, round(rozpoznanie.pewnosc, 3), _teraz(),
+         zrodlo_tekstu),
     )
     db.commit()
     zapisz_audyt(db, "dodanie_dokumentu", sprawa_id,
@@ -485,11 +498,25 @@ def lista_dokumentow(db, sprawa_id: int) -> list[dict]:
     """Metadane dokumentów JEDNEJ sprawy (bez treści)."""
     wiersze = db.execute(
         "SELECT id, sprawa_id, nazwa, rodzaj, LENGTH(tresc) AS dlugosc, "
-        "jezyk, jezyk_pewnosc, dodano "
+        "jezyk, jezyk_pewnosc, dodano, zrodlo_tekstu "
         "FROM dokumenty WHERE sprawa_id = ? ORDER BY id",
         (sprawa_id,),
     ).fetchall()
     return [dict(w) for w in wiersze]
+
+
+def zrodla_dokumentow(db, sprawa_id: int) -> dict[str, str]:
+    """Mapa {id_dokumentu: pochodzenie tekstu}.
+
+    ⚠️ Potrzebna przy KAŻDYM cytacie, nie tylko na liście dokumentów.
+    Cytat z pliku cyfrowego i cytat z OCR-u wyglądają identycznie,
+    a znaczą co innego: pierwszy jest treścią pisma, drugi jego
+    odczytem. Bez tej mapy panel nie ma z czego zbudować ostrzeżenia.
+    """
+    return {str(w["id"]): (w["zrodlo_tekstu"] or "wklejony")
+            for w in db.execute(
+                "SELECT id, zrodlo_tekstu FROM dokumenty WHERE sprawa_id = ?",
+                (sprawa_id,))}
 
 
 def jezyki_dokumentow(db, sprawa_id: int) -> dict[str, str]:

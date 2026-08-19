@@ -615,7 +615,8 @@ def analizuj(pytanie: str,
              nazwy_przepisow: dict[str, str] | None = None,
              postep: Callable[[str, int, int], None] | None = None,
              maks_dokumentow: int = MAKS_DOKUMENTOW_DO_ANALIZY,
-             jezyki: dict[str, str] | None = None) -> WynikAnalizy:
+             jezyki: dict[str, str] | None = None,
+             zrodla: dict[str, str] | None = None) -> WynikAnalizy:
     """Pełna analiza. `dokumenty` pochodzą WYŁĄCZNIE z jednej sprawy.
 
     `postep(etap, zrobione, wszystkie)` pozwala pokazać, co się dzieje —
@@ -716,6 +717,31 @@ def analizuj(pytanie: str,
         melduj("Sprawdzam wsparcie ustaleń", 0, len(potwierdzone))
         potwierdzone = _sprawdz_wsparcie_ustalen(
             potwierdzone, wynik, pytanie, melduj)
+
+        # ── POCHODZENIE TEKSTU NA KAŻDYM CYTACIE ────────────────────
+        #
+        # ⚠️ BEZWARUNKOWO, POZA PRZEŁĄCZNIKAMI KONTROLI.
+        #
+        # Cytat z pliku cyfrowego i cytat z OCR-u wyglądają identycznie,
+        # a znaczą co innego: pierwszy jest treścią pisma, drugi jego
+        # ODCZYTEM — i myli się najczęściej w sygnaturach, kwotach
+        # i datach, czyli tam, gdzie stoją wyróżniki i terminy.
+        #
+        # Gdyby to oznaczenie siedziało w `_sprawdz_wsparcie_ustalen`,
+        # znikałoby razem z wyłączoną kontrolą. Ostrzeżenie, które
+        # gaśnie przy zmianie niezwiązanego przełącznika, jest gorsze
+        # od jego braku, bo raz się pojawia, a raz nie.
+        if zrodla:
+            for u in potwierdzone:
+                for c in u.cytaty:
+                    pochodzenie = zrodla.get(str(c.get("dokument_id")), "")
+                    if not pochodzenie:
+                        continue
+                    c["zrodlo_tekstu"] = pochodzenie
+                    if pochodzenie == "ocr":
+                        c["ostrzezenie_zrodla"] = (
+                            "Tekst z rozpoznania obrazu (OCR) — sprawdź przy "
+                            "oryginale, zwłaszcza sygnatury, kwoty i daty.")
 
         wynik.ustalenia = potwierdzone
 
