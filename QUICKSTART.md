@@ -295,12 +295,12 @@ python -m pytest tests/ -q --dozwol-pominiecie
 **You should see**, after about two minutes:
 
 ```
-577 passed, 123 skipped, 1 warning
+582 passed, 123 skipped, 1 warning
 ```
 
 **All three numbers are normal.** What they mean:
 
-- **577 passed** - if any fail, something is genuinely wrong; do not load real
+- **582 passed** - if any fail, something is genuinely wrong; do not load real
   case files until you know what.
 - **123 skipped** - tests needing Docker, the OpenContracts fork or the
   measurement corpora, none of which this guide installs. Skipped is the
