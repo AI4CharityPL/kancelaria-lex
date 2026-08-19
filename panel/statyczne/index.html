@@ -1646,6 +1646,14 @@ async function dodajSprawe(){
 const val=id=>document.getElementById(id).value;
 
 async function wybierzSprawe(id){
+  /* ⚠️ ZAZNACZENIE MUSI ZNIKNĄĆ RAZEM ZE SPRAWĄ.
+     Bez tego kwadraciki zaznaczone w poprzedniej sprawie jechały dalej
+     w `zaznaczone`, a `analizuj()` wysyłał je jako `dokumenty_id`.
+     Serwer — słusznie — odmawiał: „Dokument nie należy do tej sprawy".
+     Najgorsze było to, że zaznaczenia NIE BYŁO WIDAĆ: żaden kwadracik
+     w nowej sprawie się nie zapalał, bo identyfikatory pochodziły
+     z innej, więc prawnik nie miał czego odznaczyć.                  */
+  zaznaczone.clear();
   sprawaAktywna=id; dokumentAktywny=null; watekAktywny=null;
   document.getElementById('dodaj-dok').style.display='block';
   document.getElementById('pole-pytania').style.display='block';
@@ -1759,6 +1767,12 @@ async function przelacznikWatku(){
 async function wczytajDokumenty(){
   const {dokumenty=[]}=await api(`/api/sprawy/${sprawaAktywna}/dokumenty`);
   dokumentyWszystkie = dokumenty;
+
+  /* Druga zapora na to samo: zaznaczenie przycięte do dokumentów, które
+     w tej sprawie FAKTYCZNIE są. Łapie także dokument usunięty w innej
+     karcie — identyfikator zostałby w zbiorze i wywracał analizę.     */
+  const istniejace = new Set(dokumenty.map(d=>d.id));
+  for(const id of [...zaznaczone]) if(!istniejace.has(id)) zaznaczone.delete(id);
   const wszystkie=`<div class="karta ${dokumentAktywny===null&&!zaznaczone.size?'wybrana':''}"
        onclick="zawezDo(null)">
       <div class="syg">Cała sprawa</div><div class="meta">analiza wszystkich dokumentów</div></div>`;
@@ -1922,7 +1936,13 @@ async function analizuj(){
       dokumenty_id:[...zaznaczone], watek_id:watekAktywny,
       uzyj_przepisow:document.getElementById('uzyj-przepisow').checked})});
 
-  if(w.blad){btn.disabled=false; pokazBlad(w.blad); return;}
+  if(w.blad){
+    btn.disabled=false;
+    /* Serwer zgłasza, że zaznaczenie pochodzi spoza sprawy — porządkujemy
+       je od razu, żeby kolejne kliknięcie nie odbiło się o to samo. */
+    if(w.wyczysc_zaznaczenie){ zaznaczone.clear(); await wczytajDokumenty(); }
+    pokazBlad(w.blad); return;
+  }
   sonduj(w.zadanie_id, btn);
 }
 

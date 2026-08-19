@@ -190,3 +190,39 @@ def test_manipulacja_logiem_jest_wykrywalna(db, dwie_sprawy):
     ok, opis = baza.zweryfikuj_lancuch_audytu(db)
     assert not ok
     assert "przerwany" in opis
+
+
+# ── zaznaczenie kwadracikami a zamknięcie zakresu ────────────────────
+#
+# ⚠️ USTERKA ZGŁOSZONA 19.08.2026 — I TO PANEL BYŁ WINNY, NIE SERWER.
+#
+# Prawnik zaznaczał dokumenty w jednej sprawie, przechodził do drugiej
+# i dostawał „Dokument nie należy do tej sprawy". Serwer zachowywał się
+# poprawnie: to zamknięcie zakresu odrzucało identyfikatory z obcej
+# sprawy. Panel jednak NIE CZYŚCIŁ zaznaczenia przy zmianie sprawy,
+# a że kwadraciki z obcej sprawy nie zapalały się w bieżącej, prawnik
+# nie miał czego odznaczyć — komunikat był prawdziwy i bezużyteczny.
+#
+# Te testy pilnują strony serwerowej: obcy identyfikator ma być
+# odrzucony, a zawężenie ma dać dokładnie to, co zaznaczono.
+
+def test_dokument_z_obcej_sprawy_nie_wchodzi_do_zawezenia(db, dwie_sprawy):
+    """Lista `dokumenty_id` nie może być drogą do akt innej sprawy."""
+    obcy = baza.pobierz_dokument(db, dwie_sprawy["a"], dwie_sprawy["dok_b"])
+    assert obcy is None, "dokument sprawy B nie może być widoczny ze sprawy A"
+
+
+def test_wlasny_dokument_przechodzi(db, dwie_sprawy):
+    wlasny = baza.pobierz_dokument(db, dwie_sprawy["a"], dwie_sprawy["dok_a"])
+    assert wlasny is not None
+    assert "marki Opel" in wlasny["tresc"]
+
+
+def test_zawezenie_do_wlasnych_dokumentow_zwraca_tylko_je(db, dwie_sprawy):
+    """Zawężenie musi dać dokładnie zaznaczone dokumenty tej sprawy."""
+    tresci = baza.tresci_dokumentow(db, dwie_sprawy["a"])
+    dozwolone = {str(dwie_sprawy["dok_a"])}
+    zawezone = {k: v for k, v in tresci.items() if k in dozwolone}
+
+    assert set(zawezone) == dozwolone
+    assert all("sprawie B" not in t for t in zawezone.values())
