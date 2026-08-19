@@ -21,12 +21,14 @@ license-files = ["LICENSE"]
 keywords = ["prawo", "kancelaria", "rag", "lokalny-llm", "ollama", "legal-tech", "offline"]
 
 # AUTORSTWO. Jedna osoba — projekt, kod, aparat pomiarowy i dokumentacja
-# zgodności; szczegóły w AUTHORS.md. Podany jest sam `name`, bez `email`:
-# metadanych PyPI nie da się zmienić po wgraniu wersji, a adres e-mail w polu
-# `authors` trafia do publicznych metadanych paczki na stałe. Sam `name` jest
-# poprawny wg PEP 621 i wystarcza; e-mail można dopisać świadomie przed
-# publikacją, jeśli ma tam być.
-authors = [{ name = "Krzysztof Augiewicz" }]
+# zgodności; szczegóły w AUTHORS.md.
+#
+# E-mail podany świadomie przez autora. Warto wiedzieć, co to znaczy: pole
+# `authors` trafia do publicznych metadanych paczki, są one indeksowane i
+# zbierane przez roboty, a metadanych wersji wgranej na PyPI nie da się potem
+# zmienić — można tylko wydać kolejną wersję. Adres jest tu, bo autor go
+# wskazał, a nie dlatego, że PEP 621 tego wymaga (sam `name` wystarcza).
+authors = [{ name = "Krzysztof Augiewicz", email = "krzysztof.augiewicz@gmail.com" }]
 
 classifiers = [
     "Development Status :: 5 - Production/Stable",

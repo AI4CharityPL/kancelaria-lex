@@ -11,6 +11,7 @@
 ### Krzysztof Augiewicz — "one man army"
 
 - **Role:** Creator, architect and sole author of this system
+- **Email:** krzysztof.augiewicz@gmail.com
 - **LinkedIn:** [krzysztof-a](https://www.linkedin.com/in/krzysztof-a-97a170185/)
 - **GitHub:** [KrzysztofAugiewicz](https://github.com/KrzysztofAugiewicz)
 
