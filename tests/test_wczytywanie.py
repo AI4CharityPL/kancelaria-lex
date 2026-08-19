@@ -200,3 +200,49 @@ def test_dzielenie_wyrazu_na_koncu_wiersza_sklejane():
     wynik = w.wczytaj("pismo.txt",
                       "postano-\nwienie sądu jest prawomocne.".encode("utf-8"))
     assert "postanowienie" in wynik.tekst
+
+
+# ── znaki sterujące a długość w bazie ────────────────────────────────
+
+def test_znaki_sterujace_usuwane_z_wczytanego_tekstu():
+    """⚠️ USTERKA ZMIERZONA 19.08.2026 — DOKUMENT WYGLĄDAŁ NA PUSTY.
+
+    Bajt NUL w treści ma skutek uboczny, którego nie widać: `LENGTH()`
+    w SQLite zatrzymuje się na nim. Faktura o 2672 znakach, z pierwszym
+    NUL-em na pozycji 31, pokazywała się na liście dokumentów jako
+    `31 zn.` — treść była w bazie w całości, ale prawnik patrzył na
+    pozycję wyglądającą na pustą i nie miał powodu jej otwierać.
+    """
+    tekst = "Sąd oddalił wniosek\x00 obrońcy\x01 o dopuszczenie dowodu."
+    wynik = w.wczytaj("pismo.txt", tekst.encode("utf-8"))
+
+    assert wynik.nadaje_sie
+    assert "\x00" not in wynik.tekst
+    assert "\x01" not in wynik.tekst
+    assert "Sąd oddalił wniosek" in wynik.tekst
+
+
+def test_usuniecie_znakow_jest_zglaszane():
+    """Dokument niepełny musi o tym mówić — brak treści jest niewidoczny."""
+    tekst = "Treść pisma procesowego" + "\x00" * 5 + " ciąg dalszy."
+    wynik = w.wczytaj("pismo.txt", tekst.encode("utf-8"))
+    assert any("NIEPEŁNY" in o for o in wynik.ostrzezenia)
+
+
+def test_zdrowy_tekst_nie_dostaje_ostrzezenia():
+    wynik = w.wczytaj("pismo.txt", ZDANIE.encode("utf-8"))
+    assert not any("NIEPEŁNY" in o for o in wynik.ostrzezenia)
+    assert wynik.tekst == ZDANIE
+
+
+def test_usun_sterujace_liczy_ile_usunelo():
+    oczyszczony, ile = w.usun_sterujace("a\x00b\x01c\x1fd")
+    assert oczyszczony == "abcd"
+    assert ile == 3
+
+
+def test_tabulator_i_nowa_linia_zostaja():
+    """Nie każdy znak poniżej spacji to śmieć — układ tekstu ma znaczenie."""
+    oczyszczony, ile = w.usun_sterujace("wiersz\tkolumna\nnastępny")
+    assert oczyszczony == "wiersz\tkolumna\nnastępny"
+    assert ile == 0

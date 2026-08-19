@@ -116,6 +116,30 @@ MAKS_UDZIAL_SMIECI = 0.15
 _SMIEC = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\ufffd\ufeff]")
 
 
+def usun_sterujace(tekst: str) -> tuple[str, int]:
+    """Zwraca (tekst bez znaków sterujących, ile usunięto).
+
+    ⚠️ USTERKA ZMIERZONA 19.08.2026 — DOKUMENT WYGLĄDAŁ NA PUSTY.
+
+    Znaki sterujące to nierozszyfrowane glify, nigdy treść pisma. Bajt
+    NUL wśród nich ma jednak skutek uboczny, którego nie widać:
+    **LENGTH() w SQLite zatrzymuje się na pierwszym NUL-u**.
+
+    Faktura o 2672 znakach, z pierwszym NUL-em na pozycji 31, pokazywała
+    się na liście dokumentów jako `31 zn.` Treść była w bazie w całości
+    i model ją widział — ale prawnik patrzył na pozycję wyglądającą na
+    pustą i nie miał powodu jej otwierać.
+
+    Usuwamy je PO ocenie jakości, nie przed: bramka ma widzieć prawdziwy
+    udział śmieci i na nim decydować. Tutaj tylko sprzątamy to, co i tak
+    zostało dopuszczone, i mówimy ile.
+    """
+    if not tekst:
+        return tekst, 0
+    oczyszczony = _SMIEC.sub("", tekst)
+    return oczyszczony, len(tekst) - len(oczyszczony)
+
+
 def ocen_jakosc(tekst: str, bajtow: int, typ: str) -> tuple[list[str], bool]:
     """Zwraca (ostrzeżenia, czy_wymaga_ocr).
 
@@ -751,6 +775,7 @@ def wczytaj(nazwa: str, dane: bytes, ocr_dozwolony: bool = False) -> Wynik:
             return Wynik(tekst=tekst, typ=typ, znakow=len(tekst),
                          ostrzezenia=ostrzezenia, wymaga_ocr=True)
 
+        tekst_ocr, usunietych_ocr = usun_sterujace(tekst_ocr)
         return Wynik(
             tekst=tekst_ocr, typ=typ, znakow=len(tekst_ocr),
             ostrzezenia=[
@@ -760,6 +785,15 @@ def wczytaj(nazwa: str, dane: bytes, ocr_dozwolony: bool = False) -> Wynik:
                 "przy oryginale.",
                 *ostrzezenia_ocr, *rozpoznane.ostrzezenia],
             wymaga_ocr=False, zrodlo=ZRODLO_OCR, stron_ocr=rozpoznane.stron)
+
+    # Znaki sterujące usuwamy PO ocenie jakości — patrz `usun_sterujace`.
+    if not wymaga_ocr:
+        tekst, usunietych = usun_sterujace(tekst)
+        if usunietych:
+            ostrzezenia.append(
+                f"Usunięto {usunietych} znaków, których nie dało się "
+                f"rozszyfrować. Dokument jest wczytany, ale NIEPEŁNY — "
+                f"w tych miejscach brakuje treści.")
 
     return Wynik(tekst=tekst, typ=typ, znakow=len(tekst),
                  ostrzezenia=ostrzezenia, wymaga_ocr=wymaga_ocr)
