@@ -918,11 +918,29 @@ class Uchwyt(BaseHTTPRequestHandler):
         wybrane_id = dane.get("dokumenty_id") or []
         if wybrane_id:
             dozwolone = set()
+            obce = []
             for surowy in wybrane_id:
                 did = self._int_lub_none(surowy)
                 if did is None or baza.pobierz_dokument(DB, sprawa_id, did) is None:
-                    return _json(self, {"blad": "Dokument nie należy do tej sprawy."}, 404)
+                    obce.append(str(surowy))
+                    continue
                 dozwolone.add(str(did))
+            # ⚠️ KOMUNIKAT MUSI MÓWIĆ, CO ZROBIĆ.
+            #
+            # Sama odmowa jest poprawna — to zamknięcie zakresu. Ale
+            # „Dokument nie należy do tej sprawy" bez wskazówki zostawiało
+            # prawnika bez wyjścia: zaznaczenie pochodziło z POPRZEDNIEJ
+            # sprawy, więc w bieżącej nie było czego odznaczyć. Panel
+            # czyści je teraz przy zmianie sprawy, a ten komunikat zostaje
+            # dla wywołań spoza interfejsu.
+            if obce:
+                return _json(self, {
+                    "blad": (f"{len(obce)} z zaznaczonych dokumentów nie należy "
+                             f"do tej sprawy. Wyczyść zaznaczenie i wskaż "
+                             f"dokumenty z bieżącej sprawy."),
+                    "obce_dokumenty": obce[:10],
+                    "wyczysc_zaznaczenie": True,
+                }, 404)
             dokumenty = {k: v for k, v in dokumenty.items() if k in dozwolone}
             if not dokumenty:
                 return _json(self, {"blad": "Zaznaczone dokumenty są puste."}, 400)

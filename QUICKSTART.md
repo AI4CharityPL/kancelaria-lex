@@ -289,21 +289,22 @@ pip install pytest
 ```
 
 ```bash
-python -m pytest tests/ -q
+python -m pytest tests/ -q --dozwol-pominiecie
 ```
 
 **You should see**, after about two minutes:
 
 ```
-582 passed, 105 skipped, 1 warning
+569 passed, 121 skipped, 1 warning
 ```
 
 **All three numbers are normal.** What they mean:
 
-- **582 passed** - if any fail, something is genuinely wrong; do not load real
+- **569 passed** - if any fail, something is genuinely wrong; do not load real
   case files until you know what.
-- **105 skipped** - tests needing Docker or the measurement corpora, neither of
-  which this guide installs. Skipped is the correct outcome here, not a failure.
+- **121 skipped** - tests needing Docker, the OpenContracts fork or the
+  measurement corpora, none of which this guide installs. Skipped is the
+  correct outcome here, not a failure.
 - **1 warning** - deliberate. It reads:
 
   > *J-3 = 82.0% - powyżej progu regresji 66%, ale PONIŻEJ CELU 90%.*
@@ -311,6 +312,21 @@ python -m pytest tests/ -q
   The system refuses to answer correctly 82% of the time, against a target of
   90%. **We publish this as a warning on every single run rather than lowering
   the target to match reality.** The gap is real and open. Nothing is broken.
+
+### Why `--dozwol-pominiecie`
+
+Without that flag you will see **14 failures**, and they are not bugs.
+
+The isolation gates (I-1, I-2, I-3) check the OpenContracts fork for cloud SDKs,
+and further gates need a running Docker daemon. This guide installs neither.
+Those gates **fail rather than skip on purpose**: a security gate that quietly
+passes when it could not run is worse than no gate at all, because it reports
+success it never verified.
+
+`--dozwol-pominiecie` ("allow skipping") is how you say *I know these gates did
+not run.* Use it while following this guide. Do **not** use it on the machine
+that will hold real case files - there, the fork and Docker must be present and
+the gates must actually pass.
 
 > **These tests do not need the model, the internet or your documents.** They
 > check the code. To reproduce the *accuracy* figures you also need the corpora
