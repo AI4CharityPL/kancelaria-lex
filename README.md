@@ -241,6 +241,11 @@ The only current version lives at
 A copy received any other way, by email, on a drive or from an intermediary, is
 not official, and you cannot know what was changed in it.
 
+## Author
+
+- **Krzysztof Augiewicz** - Creator - [LinkedIn](https://www.linkedin.com/in/krzysztof-a-97a170185/) ·
+
+
 ## Licence and liability
 
 MIT; see [LICENSE](LICENSE). Use it, sell services around it, fork it.
