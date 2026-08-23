@@ -53,10 +53,7 @@ competitor in Polish.
 
 We would rather it be free and have the shelter get the money instead.
 
-If you are a law firm and this replaces a paid tool, please donate roughly what
-you would have paid. If you are a student, a solo practitioner, or just curious,
-use it, donate nothing, and enjoy it. **No one is checking. There is no licence
-key.** The request above is a request, never a condition.
+If you are a law firm and this replaces a paid tool, please think about donation. If you are a student, a solo practitioner, or just curious- use and enjoy it 😊 
 
 ---
 
