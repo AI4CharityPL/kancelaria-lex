@@ -1,6 +1,6 @@
 """Wspólne narzędzia dla testów izolacji.
 
-Zasada nadrzędna (docs/11-testy-i-bramki.md):
+Zasada nadrzędna (docs/testing-and-gates.md):
 test bezpieczeństwa, który przechodzi zawsze, jest GORSZY niż brak testu.
 
 Dlatego brak działającego Dockera nie daje wyniku "zaliczone" — daje

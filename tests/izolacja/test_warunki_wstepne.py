@@ -1,7 +1,7 @@
 """Pojedynczy, celowo głośny sygnał o niewykonanych bramkach izolacji.
 
 Bez tego testu brak Dockera dawałby wynik "wszystko pominięte, zero
-błędów" — czyli dokładnie to, przed czym ostrzega docs/11-testy-i-bramki.md:
+błędów" — czyli dokładnie to, przed czym ostrzega docs/testing-and-gates.md:
 test bezpieczeństwa, który nie potrafi paść, jest gorszy niż jego brak.
 
 Ten test zapewnia, że przebieg bez sprawdzonej izolacji JEST czerwony,

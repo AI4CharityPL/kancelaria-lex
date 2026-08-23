@@ -25,7 +25,7 @@ ENV PYTHONUNBUFFERED=1 \
     PORT=8000
 
 # Wariant CPU: embedder nie konkuruje o VRAM z modelem językowym
-# (8 GB to cały budżet karty — patrz docs/12-sprzet-i-koszty.md).
+# (8 GB to cały budżet karty — patrz docs/hardware-and-costs.md).
 # Indeks CPU zamiast domyślnego oszczędza ~2 GB obrazu na bibliotekach CUDA.
 RUN pip install --no-cache-dir \
         --index-url https://download.pytorch.org/whl/cpu \

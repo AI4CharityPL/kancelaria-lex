@@ -90,7 +90,7 @@ def test_wykrywa_twierdzenie_bez_cytatu(weryfikator):
 
 
 def test_wykrywa_nieistniejacy_dokument(weryfikator):
-    """Zasięg zawężony do uprawnień użytkownika (docs/07-agenci.md)."""
+    """Zasięg zawężony do uprawnień użytkownika (docs/agents.md)."""
     obcy = Cytat("dok-999", 0, 10, "cokolwiek")
     wynik = weryfikator.sprawdz_twierdzenie(Twierdzenie("X", [obcy]))
     assert wynik.werdykt is Werdykt.ODRZUCONY_BRAK_DOKUMENTU

@@ -15,7 +15,7 @@ Ten dziennik jest odpowiednikiem trace'ów z narzędzi obserwowalności
 
 Narzędzia obserwowalności zapisują pełne trace'y: pytanie, kontekst,
 odpowiedź. Tutaj jest to niedopuszczalne. Wymaganie T-4
-(`docs/09-compliance/tajemnica-zawodowa.md`) mówi, że log **rejestruje
+(`docs/compliance/legal-professional-privilege.md`) mówi, że log **rejestruje
 dostęp, a nie kopiuje treści** — inaczej sam wymaga tej samej ochrony
 co akta, a przy zajęciu sprzętu wydaje wszystko drugi raz.
 

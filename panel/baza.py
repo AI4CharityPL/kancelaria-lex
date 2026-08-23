@@ -10,7 +10,7 @@ WHERE, więc wyciek między sprawami wymagałby zmiany kodu, a nie
 pomyłki w wywołaniu.
 
 Wynika to wprost z wymagań F-30 (zasada wiedzy koniecznej) i F-32
-(ściany etyczne) — docs/02-wymagania.md.
+(ściany etyczne) — docs/requirements.md.
 
 Celowo używamy wyłącznie biblioteki standardowej: żadnych nowych
 zależności, których trzeba by pilnować w łańcuchu dostaw (art. 21

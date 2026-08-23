@@ -50,7 +50,7 @@ def _wymagaj_zrodel():
     pytest.fail(
         f"\nBrak forka w {ZRODLA}.\n"
         "Bramka I-1 nie mogła zostać sprawdzona — to NIE jest wynik\n"
-        "pozytywny. Wykonaj krok 3 z docs/10-operacje/runbook-wdrozenie.md.\n"
+        "pozytywny. Wykonaj krok 3 z docs/operations/deployment.md.\n"
         "Świadome pominięcie: pytest --dozwol-pominiecie",
         pytrace=False,
     )
@@ -127,7 +127,7 @@ def test_i8_obrazy_przypiete_po_sha256():
         "╚══════════════════════════════════════════════════════════╝\n"
         + "\n".join(nieprzypiete)
         + "\n\nUruchom: bash skrypty/pobierz-digesty.sh\n"
-          "Patrz U-5 w docs/05-izolacja-i-siec.md.\n"
+          "Patrz U-5 w docs/isolation-and-network.md.\n"
     )
 
 
@@ -141,7 +141,7 @@ def test_i2_brak_routingu_mcp():
     ścieżki /mcp, /mcp/*, /sse, /sse/* do osobnej aplikacji ASGI PRZED
     Django. Bramka przechodziłaby więc przy w pełni żywym serwerze MCP.
 
-    Dokładnie ten tryb awarii opisuje docs/11-testy-i-bramki.md: test
+    Dokładnie ten tryb awarii opisuje docs/testing-and-gates.md: test
     bezpieczeństwa, który nie potrafi paść, jest gorszy niż jego brak.
 
     Dodatkowo warto wiedzieć, że MCP_SERVER["enabled"]=False NIE

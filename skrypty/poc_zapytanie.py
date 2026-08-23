@@ -55,7 +55,7 @@ Jeśli akta nie zawierają odpowiedzi, zwróć {"twierdzenia": []}."""
 
 
 def zapytaj(pytanie: str, dokumenty: dict[str, str], limit_znakow: int = 4000) -> str:
-    """Kontekst jako DANE, nigdy jako instrukcja (docs/07-agenci.md, zasada 2)."""
+    """Kontekst jako DANE, nigdy jako instrukcja (docs/agents.md, zasada 2)."""
     czesci = [
         f"=== DOKUMENT: {nazwa} ===\n{tresc[:limit_znakow]}"
         for nazwa, tresc in dokumenty.items()

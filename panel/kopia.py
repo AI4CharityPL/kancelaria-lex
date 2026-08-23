@@ -4,7 +4,7 @@
  PO CO
 ════════════════════════════════════════════════════════════════════════
 
-Procedura odtworzenia była opisana w `docs/10-operacje/backup-i-dr.md`
+Procedura odtworzenia była opisana w `docs/operations/backup-and-recovery.md`
 i NIGDY NIEPRZEĆWICZONA — mówi o tym wprost oświadczenie, które każda
 osoba przyjmuje przy zakładaniu profilu. Deklarowane RPO ≤ 24 h
 i RTO ≤ 8 h pozostawały założeniem.

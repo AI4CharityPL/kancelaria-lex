@@ -1,120 +1,61 @@
-# Manifest modeli
+# Model manifest
 
-Ten katalog przechowuje **manifesty, sumy kontrolne i licencje** — nie same wagi.
-Wagi są wyłączone z repozytorium (`.gitignore`) i wnoszone paczką offline.
+This directory holds **manifests, checksums and licences**, not the weights themselves. The weights are excluded from the repository (`.gitignore`) and brought in as an offline package.
 
-## ⚠️ Licencja kodu nie jest licencją wag
+## The code licence is not the weights licence
 
-MIT dla OpenContracts nie mówi nic o modelu językowym. **Każda aktualizacja modelu wymaga ponownej weryfikacji licencji wag.**
+MIT for OpenContracts says nothing about the language model. **Every model update requires the weights licence to be verified again.**
 
-Przypadek, który to unaocznia: **Surya** — kod na Apache 2.0, ale wagi na AI Pubs Open-RAIL-M, która ogranicza użycie komercyjne po przekroczeniu progu przychodu. Dla kancelarii komercyjnej wymagałoby to odrębnej licencji. Sama licencja repozytorium nie wystarcza do oceny.
+The case that makes this concrete: **Surya**, with Apache 2.0 code but weights under AI Pubs Open-RAIL-M, which restricts commercial use above a revenue threshold. For a commercial law firm that would require a separate licence. A repository's licence is not enough to judge by.
 
----
+## Language models in production
 
-## Modele językowe — stan produkcyjny
+> **Corrected 17.08.2026.** This section previously listed only Bielik-11B, described as "the" language model of the system. **The system does not use it.** The ablation of 14.08.2026 rejected the 11B in the extraction role (8 errors in 99.0 s against 6 in 35.1 s for the minitron), and since model selection by document language was introduced (`panel/jezyk.py`) production has run on **two** models rather than one. A manifest describing an unused model is worse than no manifest: it leads directly to installing something other than what was measured.
 
-⚠️ **Poprawione 17.08.2026.** Wcześniej stał tu wyłącznie Bielik-11B, opisany
-jako „model językowy" systemu. **System go nie używa.** Ablacja z 14.08.2026
-odrzuciła 11B w roli wydobywającej (8 błędów / 99,0 s wobec 6 / 35,1 s dla
-minitrona), a od wprowadzenia wyboru modelu po języku dokumentu (`panel/jezyk.py`)
-produkcja stoi na **dwóch** modelach, nie jednym. Manifest opisujący nieużywany
-model jest gorszy niż brak manifestu: prowadzi wprost do zainstalowania czegoś
-innego niż to, na czym mierzono.
+Versions are pinned by digest in [`../QUICKSTART.md`](../QUICKSTART.md), step 3.
 
-Wersje przypięte odciskami w [`../QUICKSTART.md`](../QUICKSTART.md) (krok 3).
-
-| Rola | Model roboczy | Baza | Odcisk bazy | Licencja wag |
+| Role | Working model | Base | Base digest | Weights licence |
 |---|---|---|---|---|
-| dokumenty **polskie** | `bielik-lex-map` | `SpeakLeash/bielik-minitron-7B-v3.0-instruct:Q4_K_M` | `6660954d0758` | Apache 2.0 |
-| dokumenty **angielskie** | `llama-lex-map` | `llama3.1:8b-instruct-q4_K_M` | `46e0c10c039e` | Llama 3.1 Community License |
+| **Polish** documents | `bielik-lex-map` | `SpeakLeash/bielik-minitron-7B-v3.0-instruct:Q4_K_M` | `6660954d0758` | Apache 2.0 |
+| **English** documents | `llama-lex-map` | `llama3.1:8b-instruct-q4_K_M` | `46e0c10c039e` | Llama 3.1 Community License |
 
-| Pole | Wartość |
+| Field | Value |
 |---|---|
-| Twórcy | SpeakLeash + ACK Cyfronet AGH (Bielik) · Meta (Llama 3.1) |
-| Data weryfikacji licencji | 17.08.2026 |
-| Kontekst | `num_ctx 8192` — zmierzony, nie domyślny |
-| Ziarno | `seed 42` — powtarzalność przebiegów |
-| Zajętość VRAM | 5,2 GB, w całości na GPU (zmierzone 17.08.2026) |
+| Authors | SpeakLeash and ACK Cyfronet AGH (Bielik), Meta (Llama 3.1) |
+| Licence verified | 17.08.2026 |
+| Context | `num_ctx 8192`, measured rather than default |
+| Seed | `seed 42`, for repeatable runs |
+| VRAM footprint | 5.2 GB, entirely on the GPU (measured 17.08.2026) |
 
-⚠️ **Licencja Llamy nie jest Apache.** Llama 3.1 Community License zawiera
-warunki, których Apache 2.0 nie ma — m.in. próg 700 mln aktywnych użytkowników
-miesięcznie i wymóg oznaczenia „Built with Llama". Dla kancelarii to bez
-znaczenia praktycznego, ale **to nie jest licencja wolna** i przy każdej zmianie
-modelu trzeba to sprawdzić od nowa, tak samo jak przy Suryi wyżej.
+> **The Llama licence is not Apache.** The Llama 3.1 Community License carries conditions that Apache 2.0 does not, among them a threshold of 700 million monthly active users and a requirement to state "Built with Llama". For a law firm that has no practical effect, but **it is not a free licence**, and it has to be checked afresh on every model change, exactly as with Surya above.
 
-**Ostrzeżenie z karty modelu:** modele kwantyzowane wykazują obniżoną jakość
-odpowiedzi i podatność na halucynacje. Publikowane wyniki (trafność 80,0%,
-poprawna odmowa 82,0%) **już ten koszt zawierają** — zmierzono je na Q4_K_M,
-a nie na wagach pełnej precyzji.
+**Warning from the model card:** quantised models show reduced answer quality and a tendency to hallucinate. The published results (80.0% accuracy, 82.0% correct refusal) **already include that cost**, because they were measured on Q4_K_M rather than on full-precision weights.
 
-### Model odrzucony — zostaje wyłącznie do prac rozwojowych
+### A rejected model, kept only for development
 
-| Pole | Wartość |
+| Field | Value |
 |---|---|
-| Nazwa | Bielik-11B-v3.0-Instruct (`bielik-lex-dev`) |
-| Źródło | `SpeakLeash/bielik-11b-v3.0-instruct:Q4_K_M`, ~6,7 GB |
-| Licencja wag | Apache 2.0 (zweryfikowano 14.08.2026) |
-| Status | **nieużywany w produkcji** — `models/Modelfile.bielik-dev` zostaje dla powtórzenia ablacji |
+| Name | Bielik-11B-v3.0-Instruct (`bielik-lex-dev`) |
+| Source | `SpeakLeash/bielik-11b-v3.0-instruct:Q4_K_M`, around 6.7 GB |
+| Weights licence | Apache 2.0 (verified 14.08.2026) |
+| Status | **not used in production**; `models/Modelfile.bielik-dev` stays so the ablation can be repeated |
 
-Instrukcja instalacji **celowo go nie buduje**: kosztuje 6,7 GB pobierania
-i 1,5 GB VRAM ponad budżet 8-gigabajtowej karty, nie dając nic w zamian.
+The setup guide **deliberately does not build it**: it costs 6.7 GB of download and 1.5 GB of VRAM beyond the budget of an 8 GB card, and gives nothing in return.
 
-## Embedder
+## Embedder: `intfloat/multilingual-e5-base`
 
-| Pole | Wartość |
+| Field | Value |
 |---|---|
-| Nazwa | multilingual-e5-base |
-| Wymiary | **768** — mieści się we wspieranym zestawie, bez zmian w schemacie pgvector |
-| Powód wyboru | Zamiast domyślnego `all-MiniLM-L6-v2` (384 wym., korpus angielski) — ADR-0004 |
-| Uruchomienie | CPU, nie konkuruje o VRAM z modelem językowym |
-| Suma kontrolna | _do uzupełnienia_ |
+| Dimensions | **768**, within the supported set, so no change to the pgvector schema |
+| Why chosen | In place of the default `all-MiniLM-L6-v2` (384 dimensions, English corpus); see ADR-0004 |
+| Execution | CPU, so it does not compete with the language model for VRAM |
+| Weights licence | MIT (intfloat) |
 
-## OCR
+The weights are brought in as an **offline package** into `models/e5-base/` and mounted into the container read-only. The service does not fetch them itself; without the weights it does not start (see `src/aplikacje/embedder/README.md`).
 
-| Silnik | Licencja | Rola |
-|---|---|---|
-| Tesseract 5.x + `pol.traineddata` | Apache 2.0 | domyślny |
-| RapidOCR | Apache 2.0 | zapasowy — słabe kserokopie |
-| ~~Surya~~ | wagi Open-RAIL-M | **do unikania** — limit komercyjny |
+Reasoning for the choice: [`../docs/adr/0004-embedder-multilingual-e5.md`](../docs/adr/0004-embedder-multilingual-e5.md).
 
----
-
-## Procedura wniesienia modelu
-
-1. Pobranie w strefie z dostępem do sieci.
-2. **Weryfikacja licencji wag** — nie licencji repozytorium.
-3. Obliczenie sumy kontrolnej.
-4. Wpis do tego manifestu: suma, licencja, data weryfikacji, osoba.
-5. Przeniesienie paczką offline — [`../docs/10-operacje/runbook-aktualizacje.md`](../docs/10-operacje/runbook-aktualizacje.md).
-6. Weryfikacja sumy po stronie docelowej.
-7. Weryfikacja przy każdym starcie (warstwa B izolacji, zagrożenie T-3).
-
-## Zmiana modelu
-
-**Nowszy nie znaczy lepszy dla polskich akt.** Każda zmiana modelu wymaga:
-
-- ponownego przejścia **pełnych bramek jakościowych** (J-1…J-8) na profilu produkcyjnym,
-- ponownej weryfikacji licencji wag,
-- wpisu do dziennika zmian.
-
-## Historia
-
-| Data | Model | Wersja | Kwantyzacja | Osoba |
-|---|---|---|---|---|
-| 14.08.2026 | Bielik | 11B-v3.0-Instruct | Q4_K_M | pobranie do PoC |
-| 16.08.2026 | multilingual-e5-base | intfloat, 768 wym. | FP32 (CPU) | paczka offline dla embeddera |
-
----
-
-## Embedder — `intfloat/multilingual-e5-base`
-
-Wagi wnoszone **paczką offline** do `models/e5-base/`, montowane do
-kontenera tylko do odczytu. Usługa nie pobiera ich samodzielnie — bez
-wag nie wstaje (patrz `src/aplikacje/embedder/README.md`).
-
-Uzasadnienie wyboru: [`docs/14-decyzje/ADR-0004-embedder.md`](../docs/14-decyzje/ADR-0004-embedder.md).
-
-### Sumy kontrolne (pobrane 16.08.2026)
+### Checksums (downloaded 16.08.2026)
 
 ```
 9dab198f24c8c0879e481cf7822005d5ecbceedbacb390ffafa594e28d31bac4  config.json
@@ -125,24 +66,50 @@ cfc8146abe2a0488e9e2a0c56de7952f7c11ab059eca145a0a727afce0db2865  sentencepiece.
 a18a44fad1d0b46ded15928144138cff1135d5cc8233bdd90be5f18822de09a7  model.safetensors
 ```
 
-⚠️ **Licencja kodu nie jest licencją wag.** Wagi `multilingual-e5-base`
-udostępnia intfloat na licencji MIT — do potwierdzenia przy każdej
-aktualizacji, tak samo jak przy Bieliku. Same pliki wag są wyłączone
-z repozytorium (`.gitignore`), bo ważą 1,1 GB.
+The weight files themselves are excluded from the repository (`.gitignore`), because they come to 1.1 GB.
 
+## OCR language data (Tesseract)
 
-## Dane językowe OCR (Tesseract)
+The `models/tessdata/` directory. The files **are not versioned**; they are downloaded once and checked by checksum. `TESSDATA_PREFIX` points at this directory, so installation needs no administrator rights.
 
-Katalog `models/tessdata/`. Pliki **nie są wersjonowane** — pobiera się
-je raz i sprawdza sumą. `TESSDATA_PREFIX` wskazuje ten katalog, więc
-instalacja nie wymaga uprawnień administratora.
-
-| Plik | Rozmiar | sha256 | Źródło |
+| File | Size | sha256 | Source |
 |---|---:|---|---|
-| `pol.traineddata` | 11,4 MB | `e80cc4cefbdface06e9223f43f089556b9dcf104020fbc0a200f6863c57d4405` | `tesseract-ocr/tessdata_best` |
-| `eng.traineddata` | 3,9 MB | `7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2` | instalacja Tesseract 5.4.0 |
-| `osd.traineddata` | 10,1 MB | `9cf5d576fcc47564f11265841e5ca839001e7e6f38ff7f7aacf46d15a96b00ff` | instalacja Tesseract 5.4.0 |
+| `pol.traineddata` | 11.4 MB | `e80cc4cefbdface06e9223f43f089556b9dcf104020fbc0a200f6863c57d4405` | `tesseract-ocr/tessdata_best` |
+| `eng.traineddata` | 3.9 MB | `7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2` | Tesseract 5.4.0 installation |
+| `osd.traineddata` | 10.1 MB | `9cf5d576fcc47564f11265841e5ca839001e7e6f38ff7f7aacf46d15a96b00ff` | Tesseract 5.4.0 installation |
 
-⚠️ **Polski jest wymagany, angielski nie jest zamiennikiem.** Rozpoznanie
-polskiego pisma silnikiem angielskim zwraca tekst bez znaków
-diakrytycznych — patrz [`docs/23-wczytywanie-i-ocr.md`](../docs/23-wczytywanie-i-ocr.md).
+**Polish is required and English is not a substitute.** Recognising a Polish document with the English engine returns text with no diacritics; see [`../docs/document-loading-and-ocr.md`](../docs/document-loading-and-ocr.md).
+
+## OCR engines
+
+| Engine | Licence | Role |
+|---|---|---|
+| Tesseract 5.x with `pol.traineddata` | Apache 2.0 | default |
+| RapidOCR | Apache 2.0 | fallback for poor photocopies |
+| ~~Surya~~ | Open-RAIL-M weights | **to be avoided**, commercial threshold |
+
+## Procedure for introducing a model
+
+1. Download in a zone with network access.
+2. **Verify the weights licence**, not the repository licence.
+3. Compute the checksum.
+4. Record it in this manifest: checksum, licence, date verified, person.
+5. Transfer as an offline package; see [`../docs/operations/offline-updates.md`](../docs/operations/offline-updates.md).
+6. Verify the checksum on the target side.
+7. Verify at every startup (isolation layer B, threat T-3).
+
+## Changing a model
+
+**Newer does not mean better for Polish case files.** Every model change requires:
+
+- passing the **full quality gates** (J-1 to J-8) again on the production profile,
+- verifying the weights licence again,
+- an entry in the changelog.
+
+## History
+
+| Date | Model | Version | Quantisation | Person |
+|---|---|---|---|---|
+| 14.08.2026 | Bielik | 11B-v3.0-Instruct | Q4_K_M | downloaded for the proof of concept |
+| 16.08.2026 | multilingual-e5-base | intfloat, 768 dimensions | FP32 (CPU) | offline package for the embedder |
+| 17.08.2026 | Bielik-minitron-7B, Llama 3.1 8B | production pair | Q4_K_M | digests recorded, 11B moved to development only |

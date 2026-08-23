@@ -1,82 +1,49 @@
-# Bezpieczeństwo
+# Security
 
-## Czym ten projekt jest, a czym nie jest
+## What this project is, and what it is not
 
-`kancelaria-lex` przetwarza materiał objęty tajemnicą zawodową — w tym akta
-niepublicznych spraw karnych. Model zagrożeń jest więc inny niż w typowej
-aplikacji webowej: **przeciwnikiem jest nie tylko atakujący z sieci, lecz także
-przypadkowy wyciek treści do dostawcy chmurowego** oraz zajęcie sprzętu.
+`kancelaria-lex` processes material covered by legal professional privilege, including the files of non-public criminal proceedings. The threat model is therefore different from that of a typical web application: **the adversary is not only an attacker on the network, but also an accidental leak of content to a cloud provider**, and the seizure of hardware.
 
-Cała argumentacja projektu opiera się na dwóch własnościach:
+The project's entire argument rests on two properties:
 
-1. **Nic nie wychodzi poza urządzenie** — trzy niezależne warstwy izolacji
-   (`docs/05-izolacja-i-siec.md`).
-2. **Cytat nie może być zmyślony** — model wskazuje numer zdania, treść
-   odtwarza kod ze źródła (`docs/14-decyzje/ADR-0007-*`).
+1. **Nothing leaves the device.** Three independent layers of isolation ([`docs/isolation-and-network.md`](docs/isolation-and-network.md)).
+2. **A citation cannot be fabricated.** The model indicates a sentence number and the code reconstructs the text from the source ([`docs/adr/0007-citation-by-sentence-number.md`](docs/adr/0007-citation-by-sentence-number.md)).
 
-**Modyfikacja kodu może usunąć dokładnie te dwie własności.** Wersja
-zmodyfikowana przez osoby trzecie nie jest objęta żadnym z zapewnień
-w `README.md`.
+**Modifying the code can remove exactly those two properties.** A version modified by a third party is not covered by any of the assurances in [`README.md`](README.md).
 
-## Zgłaszanie podatności
+## Reporting a vulnerability
 
-Podatności zgłaszaj **prywatnie**, przez „Report a vulnerability" w zakładce
-Security repozytorium — nie przez publiczne zgłoszenie w Issues.
+Report vulnerabilities **privately**, through "Report a vulnerability" in the repository's Security tab, rather than by opening a public issue.
 
-W zgłoszeniu **nie umieszczaj treści akt ani żadnych danych rzeczywistych.**
-Jeżeli błąd da się pokazać wyłącznie na danych, opisz go na korpusie
-syntetycznym z `eval/korpus-syntetyczny/` albo na materiale publicznym.
+**Do not include the content of case files or any real data in a report.** If a defect can only be demonstrated on data, describe it using the synthetic corpus in `eval/korpus-syntetyczny/` or on publicly available material.
 
-Czas reakcji: projekt jest prowadzony w ramach wolontariatu, więc nie
-deklarujemy SLA. Zgłoszenia dotyczące izolacji sieciowej i weryfikacji
-cytatów traktujemy priorytetowo.
+Response time: the project is run on a voluntary basis, so we do not promise a service level. Reports concerning network isolation and citation verification are treated as priority.
 
-## Zakres szczególnie istotny
+## Areas of particular importance
 
-Zgłoszenia w tych obszarach są najważniejsze — dotyczą własności, na których
-opiera się cały projekt:
+Reports in these areas matter most, because they concern the properties the whole project rests on:
 
-| Obszar | Dlaczego krytyczny |
+| Area | Why it is critical |
 |---|---|
-| Dowolna ścieżka wysyłająca dane poza urządzenie | Podważa własność nr 1 |
-| Sposób na przepuszczenie cytatu niezgodnego ze źródłem | Podważa własność nr 2 |
-| Wyjście poza zakres sprawy (cytat z akt innej sprawy) | Ściany etyczne, art. 21 ust. 2 lit. i KSC |
-| Wstrzyknięcie instrukcji przez treść dokumentu | Treść akt jest danymi, nigdy poleceniem |
-| Odczyt sesji lub podniesienie uprawnień | Rozdzielenie profili i autorstwo wpisów |
-| Wyciek treści do logu, dziennika lub audytu | T-4: log rejestruje dostęp, nie kopiuje treści |
+| Any path that sends data off the device | It undermines property 1 |
+| A way to pass a citation that is inconsistent with its source | It undermines property 2 |
+| Escaping the scope of a case (quoting from another case) | Ethical walls, art. 21(2)(i) of the Polish KSC act |
+| Injecting instructions through document content | Case content is data, never a command |
+| Reading a session or elevating privilege | Profile separation and authorship of entries |
+| Leaking content into a log, journal or audit trail | T-4: the log records access, it does not copy content |
 
-## Znane ograniczenia — zgłoszone, nie ukryte
+## Known limitations, reported rather than hidden
 
-Poniższe są **znane i udokumentowane**. Zgłoszenie ich nie jest podatnością,
-ale informacja o sposobie ich wykorzystania — już tak.
+The following are **known and documented**. Reporting them is not a vulnerability, but information about how to exploit them is.
 
-- **MFA jest dostępne, ale nie domyślne.** `panel/profile.py` realizuje
-  login i hasło (scrypt, sesja po stronie serwera, dławienie serii prób),
-  a `panel/totp.py` — drugi składnik TOTP zgodny z RFC 6238 z jednorazowymi
-  kodami zapasowymi. **Dopóki użytkownik go nie włączy, logowanie pozostaje
-  jednoskładnikowe** i art. 21 ust. 2 lit. j nie jest spełniony.
-  Drugi składnik jest też pozorny, gdy aplikacja TOTP stoi na tym samym
-  komputerze co panel — tego żaden kod nie sprawdzi.
-- **Panel nasłuchuje wyłącznie na `127.0.0.1` i nie ma własnego TLS-a.**
-  Udostępnienie w sieci kancelarii wymaga reverse proxy z TLS z własnego CA —
-  panel nie jest przeznaczony do wystawienia bez tej warstwy
-  (`docs/10-operacje/runbook-wdrozenie.md`).
-- **Szyfrowanie nośnika należy do kancelarii.** Baza `panel/dane/panel.sqlite3`
-  nie jest szyfrowana w spoczynku przez aplikację. Przy zajęciu
-  niezaszyfrowanego dysku akta są czytelne.
-- **Kwantyzacja Q4** obniża jakość modelu i zwiększa skłonność do halucynacji.
-  Dopuszczalna w profilu rozwojowym, niedopuszczalna przy aktach karnych —
-  `docs/12-sprzet-i-koszty.md`.
-- **J-3 = 82% przy celu 90%.** System odpowiada na część pytań, na które akta
-  nie dają podstawy. Cytat jest wtedy prawdziwy, ale nie popiera tezy.
-  Dlatego **cytat trzeba kliknąć i sprawdzić** — `docs/22-wyniki-docelowe.md`,
-  RY-16 w `docs/15-rejestr-ryzyk.md`.
+- **MFA is available but not the default.** `panel/profile.py` implements login and password (scrypt, a server-side session, throttling of repeated attempts), and `panel/totp.py` provides a second factor over TOTP per RFC 6238, with single-use backup codes. **Until the user enables it, login stays single-factor** and art. 21(2)(j) is not satisfied. The second factor is also illusory when the TOTP application sits on the same computer as the panel, and no code can check that.
+- **The panel listens on `127.0.0.1` only and has no TLS of its own.** Exposing it on the firm's network requires a reverse proxy with TLS from an internal CA; the panel is not meant to be published without that layer ([`docs/operations/deployment.md`](docs/operations/deployment.md)).
+- **Disk encryption is the firm's responsibility.** The `panel/dane/panel.sqlite3` database is not encrypted at rest by the application. If an unencrypted disk is seized, the case files are readable.
+- **Q4 quantisation** lowers model quality and increases the tendency to hallucinate. It is acceptable in the development profile and not acceptable for criminal case files ([`docs/hardware-and-costs.md`](docs/hardware-and-costs.md)).
+- **J-3 is 82% against a target of 90%.** The system answers some questions for which the file gives no basis. The citation is then genuine but does not support the proposition. That is why **a citation has to be clicked and checked**; see [`docs/measured-results.md`](docs/measured-results.md) and RY-16 in [`docs/risk-register.md`](docs/risk-register.md).
 
-## Zasada dotycząca danych w repozytorium
+## The rule about data in the repository
 
-**Rzeczywiste akta nigdy nie trafiają do repozytorium** (wymaganie T-6,
-`docs/09-compliance/tajemnica-zawodowa.md`). Dotyczy to także zgłoszeń
-błędów, testów odtwarzających problem i zrzutów ekranu.
+**Real case files never enter the repository** (requirement T-6, [`docs/compliance/legal-professional-privilege.md`](docs/compliance/legal-professional-privilege.md)). That covers bug reports, tests that reproduce a problem, and screenshots.
 
-Jeżeli zauważysz, że do repozytorium trafiły dane rzeczywiste — zgłoś to
-prywatną ścieżką powyżej, traktując to jako incydent, a nie jako zwykły błąd.
+If you notice that real data has reached the repository, report it through the private route above and treat it as an incident rather than an ordinary defect.

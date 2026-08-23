@@ -37,7 +37,7 @@ patrz eval/benchmark/README.md.
 DLACZEGO BEZ PRACY PRAWNIKA
 
 Bo gold set wymagający weryfikacji człowieka rośnie do 150 pytań
-i tam się zatrzymuje (docs/11-testy-i-bramki.md). Ten generator robi
+i tam się zatrzymuje (docs/testing-and-gates.md). Ten generator robi
 tysiące przypadków z tych samych akt i skaluje się z korpusem.
 NIE ZASTĘPUJE gold setu — mierzy co innego: wierność cytatu i odmowę,
 a nie poprawność merytoryczną. Obie miary są potrzebne.

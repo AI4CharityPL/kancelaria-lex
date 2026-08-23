@@ -2,7 +2,7 @@
 
 PO CO TO JEST / WHY THIS EXISTS
 
-OCR jest pierwszym ogniwem łańcucha (docs/06-stos-ai.md): błąd tutaj
+OCR jest pierwszym ogniwem łańcucha (docs/ai-stack.md): błąd tutaj
 propaguje się na retrieval, cytat i odpowiedź. Bramki N-14 i N-15
 stawiają progi CER (≤2% na dobrych skanach, ≤10% na kserokopiach),
 ale próg CER sam w sobie nic nie mówi o tym, ILE JAKOŚCI TRACI SYSTEM

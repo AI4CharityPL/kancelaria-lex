@@ -52,7 +52,7 @@ def test_rozbiezne_wykrywa_regresje_z_sierpnia():
     Odtwarza dokładnie tę konfigurację, która wróciła po naprawie.
     Bez tego nie wiadomo, czy `test_srodowisko_zgodne_z_wymaganiami`
     przechodzi dlatego, że jest dobrze, czy dlatego, że nie potrafi
-    wykryć niczego (docs/11-testy-i-bramki.md).
+    wykryć niczego (docs/testing-and-gates.md).
     """
     regresja = {
         "OLLAMA_NUM_PARALLEL": "8",

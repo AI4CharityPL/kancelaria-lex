@@ -226,7 +226,7 @@ def ponumeruj(zdania: list[Zdanie], limit_znakow: int | None = None) -> str:
         # zdań do wyboru i zwracał pustą listę ustaleń. Wyglądało to jak
         # „w dokumencie nic nie ma", a znaczyło „nie pokazano dokumentu" —
         # ten sam tryb cichego zera, który kosztował już ten pipeline
-        # dwie pułapki (patrz docs/16-panel.md).
+        # dwie pułapki (patrz docs/panel.md).
         #
         # Zdania nie przycinamy: cytat ma być wierny, a ucięte zdanie
         # przestałoby się zgadzać ze źródłem znak w znak.

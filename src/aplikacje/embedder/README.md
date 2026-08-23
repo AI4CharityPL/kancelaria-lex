@@ -1,40 +1,29 @@
-# Embedder — `multilingual-e5-base`
+# Embedder: `multilingual-e5-base`
 
-Usługa embeddingów dla wyszukiwania w aktach. 768 wymiarów, CPU,
-segment `net_ai` bez trasy do internetu.
+The embedding service for searching case files. 768 dimensions, CPU, in the `net_ai` segment with no route to the internet.
 
-Uzasadnienie wyboru modelu: [`docs/14-decyzje/ADR-0004-embedder.md`](../../../docs/14-decyzje/ADR-0004-embedder.md).
+Reasoning for the choice of model: [`docs/adr/0004-embedder-multilingual-e5.md`](../../../docs/adr/0004-embedder-multilingual-e5.md).
 
----
+## Why this service does not fetch the model itself
 
-## Dlaczego ta usługa nie pobiera modelu sama
+When `transformers` does not find a model locally, it **downloads it from the internet** by default. In a system processing material covered by professional privilege that would be an exit outwards, and a quiet one, because it looks like a correct startup.
 
-`transformers` przy nieznalezionym modelu domyślnie **dociąga go
-z internetu**. W systemie przetwarzającym akta objęte tajemnicą
-zawodową byłoby to wyjście na zewnątrz — ciche, bo wyglądające jak
-poprawny start usługi.
+Three independent layers make sure that cannot happen:
 
-Trzy niezależne warstwy pilnują, żeby do tego nie doszło:
-
-| Warstwa | Mechanizm |
+| Layer | Mechanism |
 |---|---|
-| Biblioteka | `HF_HUB_OFFLINE=1`, `TRANSFORMERS_OFFLINE=1` w obrazie |
-| Aplikacja | `_sprawdz_wagi()` przerywa start **przed** importem `transformers` |
-| Sieć | segment `net_ai` ma `internal: true` — brak trasy do bramy |
+| Library | `HF_HUB_OFFLINE=1` and `TRANSFORMERS_OFFLINE=1` in the image |
+| Application | `_sprawdz_wagi()` stops startup **before** `transformers` is imported |
+| Network | the `net_ai` segment is `internal: true`, so there is no route to the gateway |
 
-**Brak wag = brak startu.** Usługa nie wstaje „w trybie ograniczonym"
-i nie zwraca wektorów zerowych: embedder zwracający zera wygląda na
-działający, a retrieval przestaje działać w ciszy.
+**No weights means no start.** The service does not come up "in reduced mode" and does not return zero vectors: an embedder returning zeros looks as if it works while retrieval stops working in silence.
 
----
+## Preparing the offline weights package
 
-## Przygotowanie paczki offline z wagami
-
-Wykonywane **raz**, w strefie przygotowawczej z dostępem do sieci —
-nigdy na maszynie, na której leżą akta.
+Done **once**, in a preparation zone with network access, and never on the machine that holds case files.
 
 ```bash
-# 1. Pobranie wag (maszyna z internetem)
+# 1. Download the weights (machine with internet)
 pip install "huggingface_hub==0.24.6"
 python - <<'PY'
 from huggingface_hub import snapshot_download
@@ -47,52 +36,41 @@ snapshot_download(
 )
 PY
 
-# 2. Suma kontrolna — do wpisania w models/manifest.md
+# 2. Checksums, to be recorded in models/manifest.md
 find e5-base -type f -exec sha256sum {} \; | sort
 
-# 3. Przeniesienie na maszynę docelową do models/e5-base/
+# 3. Move to the target machine, into models/e5-base/
 ```
 
-Katalog `models/e5-base/` jest montowany do kontenera **tylko do
-odczytu** (`:ro` w `compose.yml`).
+The `models/e5-base/` directory is mounted into the container **read-only** (`:ro` in `compose.yml`).
 
-⚠️ **Licencja kodu nie jest licencją wag.** Każda zmiana modelu wymaga
-ponownego sprawdzenia warunków licencyjnych i wpisu w
-[`models/manifest.md`](../../../models/manifest.md).
-
----
+**The code licence is not the weights licence.** Every model change requires the licence terms to be checked again and an entry made in [`models/manifest.md`](../../../models/manifest.md).
 
 ## API
 
-Kształt zgodny z OpenAI — klient forka rozmawia tym protokołem także
-z Ollamą (ustalenie U-1), więc jeden klient obsługuje oba adresy
-z allowlisty `LEX_DOZWOLONE_BASE_URL`.
+The shape follows OpenAI, because the fork's client speaks that protocol to Ollama as well (finding U-1), so one client serves both addresses on the `LEX_DOZWOLONE_BASE_URL` allowlist.
 
 ### `POST /v1/embeddings`
 
 ```json
-{ "input": ["treść fragmentu"], "typ": "passage" }
+{ "input": ["fragment text"], "typ": "passage" }
 ```
 
-| Pole | Znaczenie |
+| Field | Meaning |
 |---|---|
-| `input` | tekst albo lista tekstów (najwyżej 128) |
-| `typ` | **obowiązkowe, bez wartości domyślnej**: `query` dla pytania, `passage` dla fragmentu akt |
+| `input` | text or a list of texts (at most 128) |
+| `typ` | **mandatory, with no default**: `query` for a question, `passage` for a fragment of a case file |
 
-Odpowiedź:
+Response:
 
 ```json
 { "object": "list", "model": "intfloat/multilingual-e5-base",
-  "data": [{ "object": "embedding", "index": 0, "embedding": [ ... 768 ... ] }] }
+  "data": [{ "object": "embedding", "index": 0, "embedding": [ "... 768 values ..." ] }] }
 ```
 
-### ⚠️ Pole `typ` nie jest opcjonalne bez powodu
+### The `typ` field is not optional, and for a reason
 
-Rodzina E5 była trenowana z prefiksami `query:` i `passage:`. Ich
-pominięcie **nie daje błędu** — daje cicho gorszy retrieval, czyli
-usterkę widoczną dopiero jako spadek trafności o kilka punktów, bez
-żadnego komunikatu. Dlatego pole jest jawne i walidowane, a wartość
-spoza zbioru kończy się odpowiedzią 400.
+The E5 family was trained with the prefixes `query:` and `passage:`. Omitting them **produces no error**; it produces quietly worse retrieval, a defect that shows up only as a drop of a few points in accuracy, with no message at all. That is why the field is explicit and validated, and a value outside the set returns 400.
 
 ### `GET /zdrowie`
 
@@ -100,16 +78,18 @@ spoza zbioru kończy się odpowiedzią 400.
 { "stan": "gotowy", "model": "...", "wymiary": 768, "zrodlo_wag": "/modele/e5-base" }
 ```
 
----
+The field names in the response are Polish, like the rest of the application.
 
-## Uruchomienie samodzielne (diagnostyka)
+## Running it on its own (diagnostics)
 
 ```bash
 docker build -t kancelaria-lex-embedder src/aplikacje/embedder
+```
+
+```bash
 docker run --rm -p 8000:8000 \
     -v "$(pwd)/models/e5-base:/modele/e5-base:ro" \
     kancelaria-lex-embedder
 ```
 
-Bez zamontowanych wag kontener zakończy się kodem 2 i komunikatem
-wskazującym ten plik — i tak ma być.
+Without the weights mounted, the container exits with code 2 and a message pointing at this file. That is the intended behaviour.

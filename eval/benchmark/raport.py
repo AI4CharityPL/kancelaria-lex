@@ -2,7 +2,7 @@
 
 Dwujęzyczność nie jest ozdobnikiem. Raport z bramek jest materiałem
 dowodowym dla art. 32 ust. 1 lit. d RODO i art. 21 ust. 2 lit. f ustawy
-o KSC (docs/11-testy-i-bramki.md), a jednocześnie jedyną postacią,
+o KSC (docs/testing-and-gates.md), a jednocześnie jedyną postacią,
 w jakiej ten pomiar da się pokazać poza Polską. Jeden dokument w dwóch
 językach jest audytowalny; dwa osobne rozjeżdżają się po pierwszej
 poprawce.

@@ -9,7 +9,7 @@ w łańcuchu dostaw (art. 21 ust. 2 lit. d ustawy o KSC).
 ⚠️ Nasłuch WYŁĄCZNIE na 127.0.0.1. Panel nie wystawia się do sieci.
    Udostępnienie w LAN kancelarii wymaga świadomej decyzji: reverse
    proxy z TLS z własnego CA i uwierzytelnianiem — patrz
-   docs/10-operacje/runbook-wdrozenie.md. Panel nie ma własnego
+   docs/operations/deployment.md. Panel nie ma własnego
    logowania i nie jest przeznaczony do wystawienia bez tej warstwy.
 """
 

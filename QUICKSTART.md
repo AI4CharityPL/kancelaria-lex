@@ -9,9 +9,8 @@ After setup, **the system never needs the internet again.**
 > Every step tells you **what you should see** when it worked. If you see
 > something else, jump to [When something goes wrong](#when-something-goes-wrong).
 
----
 
-## Step 0 - Will it run on your computer?
+## Step 0. Will it run on your computer?
 
 **Read this before downloading 9 GB.** The model is what needs the hardware, and
 the difference between a suitable and unsuitable machine is not subtle.
@@ -23,7 +22,7 @@ the difference between a suitable and unsuitable machine is not subtle.
 | **A graphics card with ≥ 6 GB of free VRAM** | The model runs entirely on the card. Answers in **10–30 seconds**. This is what everything below assumes. |
 | **A graphics card with 4 GB** | Part of the model runs on the card, the rest on the processor. Works, noticeably slow. |
 | **No graphics card (or an integrated one)** | Runs on the processor. **Measured 13× slower** - see below. Usable for trying it out; painful for daily work. |
-| **Less than 16 GB of RAM and no graphics card** | **Do not.** The model alone needs 5,4 GB of RAM in this mode, before the system and your browser. |
+| **Less than 16 GB of RAM and no graphics card** | **Do not.** The model alone needs 5.4 GB of RAM in this mode, before the system and your browser. |
 
 ### Minimum and recommended
 
@@ -35,7 +34,7 @@ the difference between a suitable and unsuitable machine is not subtle.
 | **Free disk** | 15 GB | 25 GB |
 | **Operating system** | Windows 10/11, macOS 12+, or Linux | - |
 
-Disk breakdown: **9,4 GB** for the two models, ~3 MB for the project itself, and
+Disk breakdown: **9.4 GB** for the two models, ~3 MB for the project itself, and
 the rest for your case files, the database and backups.
 
 > **Apple Silicon** (M1/M2/M3/M4) shares memory between processor and graphics,
@@ -48,10 +47,10 @@ choice differs:
 
 | Where the model runs | Time |
 |---|---:|
-| Graphics card (Quadro RTX 4000, 8 GB) | **2,6 s** |
-| Processor only (Core i7-10875H, 8 cores) | **33,7 s** |
+| Graphics card (Quadro RTX 4000, 8 GB) | **2.6 s** |
+| Processor only (Core i7-10875H, 8 cores) | **33.7 s** |
 
-**13,2× slower**, and that was a one-sentence question. A real question about a
+**13.2× slower**, and that was a one-sentence question. A real question about a
 case file takes 10–30 seconds on the card - so expect **several minutes** on a
 processor, and longer on a weaker one than this.
 
@@ -76,14 +75,13 @@ the fixed seed are what determine the answer, not the card. Hardware changes the
 speed. **Different models change everything**, which is why Step 3 pins exact
 versions.
 
----
 
-## Step 1 - Install Python
+## Step 1. Install Python
 
 Download from **[python.org/downloads](https://www.python.org/downloads/)**
 and run the installer.
 
-> ### ⚠️ On the first screen, tick **"Add python.exe to PATH"**
+> ### On the first screen, tick **"Add python.exe to PATH"**
 > It is at the bottom and easy to miss. Without it, nothing below will work.
 
 Then open a terminal:
@@ -101,7 +99,7 @@ python --version
 If you see "not recognised", Python was installed without PATH - reinstall and
 tick the box.
 
-## Step 2 - Install Ollama
+## Step 2. Install Ollama
 
 This is the program that runs the AI model on your own machine.
 
@@ -117,7 +115,7 @@ ollama --version
 
 **You should see:** a version number like `ollama version 0.12.x`.
 
-## Step 3 - Download the two language models
+## Step 3. Download the two language models
 
 This downloads about **9 GB**. It takes a while. You only do it once.
 
@@ -156,10 +154,10 @@ ollama list
 
 ```
 sha256:6660954d075803e09b7b1e281b1879cb19719d5e40c2e8c516383b3d9c368c10
-  SpeakLeash/bielik-minitron-7B-v3.0-instruct:Q4_K_M   (4,5 GB, verified 17.08.2026)
+  SpeakLeash/bielik-minitron-7B-v3.0-instruct:Q4_K_M   (4.5 GB, verified 17.08.2026)
 
 sha256:46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e
-  llama3.1:8b-instruct-q4_K_M                          (4,9 GB, verified 17.08.2026)
+  llama3.1:8b-instruct-q4_K_M                          (4.9 GB, verified 17.08.2026)
 ```
 </details>
 
@@ -174,7 +172,7 @@ matters to you, re-run the measurement yourself: [`eval/README.md`](eval/README.
 > includes that cost. Pulling a different quantisation makes your system
 > incomparable to ours in both directions.
 
-## Step 4 - Download this project
+## Step 4. Download this project
 
 If you have Git:
 
@@ -189,7 +187,7 @@ drag the unpacked folder onto the terminal window, then press Enter.
 
 **You should see:** the terminal prompt now shows the project folder.
 
-## Step 5 - Build the two working models
+## Step 5. Build the two working models
 
 These add the instructions and settings the system needs.
 
@@ -211,7 +209,7 @@ ollama list
 
 **You should see:** `bielik-lex-map` and `llama-lex-map` in the list.
 
-## Step 6 - Tell Ollama to answer one question at a time
+## Step 6. Tell Ollama to answer one question at a time
 
 **Do not skip this.** With the default setting, the memory cache grows eightfold
 and pushes the model onto the CPU, making everything several times slower. We
@@ -232,19 +230,19 @@ export OLLAMA_NUM_PARALLEL=1
 Then **restart Ollama** (quit it from the tray/menu bar and start it again).
 Settings only apply to a fresh start.
 
-## Step 6b - Optional: OCR for scanned files
+## Step 6b. Optional: OCR for scanned files
 
 **Skip this if your case files are digital PDFs, Word or text.** Come back to it
 the first time the system refuses a scan.
 
 Without OCR the system **refuses** a PDF that contains only an image, and that
 refusal is correct: loading it as an empty document would give you a case with
-no citations and no explanation why. With OCR, that scan becomes readable text —
+no citations and no explanation why. With OCR, that scan becomes readable text,
 at a cost described below.
 
 ### Install Tesseract
 
-**Windows** — installer from
+**Windows**: installer from
 [UB Mannheim](https://github.com/UB-Mannheim/tesseract/wiki) (the usual Windows
 build). Accept the default location.
 
@@ -262,7 +260,7 @@ sudo apt install tesseract-ocr
 
 ### Add the Polish language pack
 
-⚠️ **The English pack is not a substitute.** Reading a Polish document with the
+**The English pack is not a substitute.** Reading a Polish document with the
 English engine returns text that *looks* right and has **no diacritics at all**:
 
 ```
@@ -275,7 +273,7 @@ stays off.
 
 Download `pol.traineddata` from
 [tesseract-ocr/tessdata_best](https://github.com/tesseract-ocr/tessdata_best)
-and put it in **`models/tessdata/`** inside this project — not in the Tesseract
+and put it in **`models/tessdata/`** inside this project, not in the Tesseract
 installation folder. That way it needs no administrator rights and the version
 is pinned in [`models/manifest.md`](models/manifest.md).
 
@@ -295,7 +293,7 @@ Invoke-WebRequest -Uri "https://github.com/tesseract-ocr/tessdata_best/raw/main/
 curl -L -o models/tessdata/pol.traineddata https://github.com/tesseract-ocr/tessdata_best/raw/main/pol.traineddata
 ```
 
-**Verify it** — the file is 11,4 MB and its `sha256` must be:
+**Verify it.** The file is 11.4 MB and its `sha256` must be:
 
 ```
 e80cc4cefbdface06e9223f43f089556b9dcf104020fbc0a200f6863c57d4405
@@ -309,23 +307,23 @@ Get-FileHash models/tessdata/pol.traineddata -Algorithm SHA256
 sha256sum models/tessdata/pol.traineddata
 ```
 
-### ⚠️ What OCR changes about the core promise
+### What OCR changes about the core promise
 
 This system promises that *a citation points to an exact character in the case
 file*. For a document read by OCR the true sentence is different:
 
 > a citation points to an exact character **in the reading of a scan**
 
-That reading is wrong most often in **signatures, amounts and dates** — exactly
+That reading is wrong most often in **signatures, amounts and dates**, exactly
 where procedural deadlines are decided. In our measurement a handwritten date
 came out as `4 9.03.2026`.
 
 So the system never turns OCR on by itself. A refused scan shows a **Rozpoznaj
 pismo (OCR)** button; the document you get carries a permanent `z OCR` marker,
 and every citation from it warns you to check the original. Measured results and
-limits: [`docs/23-wczytywanie-i-ocr.md`](docs/23-wczytywanie-i-ocr.md).
+limits: [`docs/document-loading-and-ocr.md`](docs/document-loading-and-ocr.md).
 
-## Step 7 - Start the system
+## Step 7. Start the system
 
 ```bash
 python panel/serwer.py
@@ -337,7 +335,7 @@ python panel/serwer.py
 **Leave this window open.** Closing it stops the system. To stop it deliberately,
 click the window and press `Ctrl+C`.
 
-## Step 8 - Open it and create your profile
+## Step 8. Open it and create your profile
 
 Open your browser and go to:
 
@@ -356,7 +354,7 @@ http://127.0.0.1:8713
 
 **You should see:** the main screen with the case list.
 
-## Step 9 - Your first case
+## Step 9. Your first case
 
 1. On the left, fill in **Sygnatura** (e.g. `II K 147/26`) and a working name,
    then click **+ Nowa sprawa**.
@@ -372,7 +370,7 @@ http://127.0.0.1:8713
 **This is the whole point of the system.** Get into the habit: an answer you have
 not clicked through is not yet a finding.
 
-## Step 10 - Confirm your installation matches ours (optional, 2 minutes)
+## Step 10. Confirm your installation matches ours (optional, 2 minutes)
 
 Everything above can appear to work while something is quietly wrong. The test
 suite is how you check, and it is the same suite we run.
@@ -426,7 +424,6 @@ the gates must actually pass.
 > and a 70–80 minute run - [`eval/README.md`](eval/README.md) explains how, and
 > why we require the full 100 cases rather than a faster subset.
 
----
 
 ## When something goes wrong
 
@@ -446,7 +443,7 @@ running. Close it, or change `PORT` at the top of `panel/serwer.py`.
 
 **"PDF nie zawiera tekstu, a jedynie obraz - to skan"**
 Correct behaviour, not a fault. A scan without a text layer is refused rather
-than loaded as empty — an empty document would produce a case with no citations
+than loaded as empty, because an empty document would produce a case with no citations
 and no explanation why.
 
 If you installed OCR (**Step 6b**), the message comes with a **Rozpoznaj pismo
@@ -468,31 +465,30 @@ Look at the **PROCESSOR** column while a question is running.
   times faster. Selecting less genuinely gives you more.
 - **`100% CPU` or a split like `40%/60% CPU/GPU`** - the model did not fit on your
   card. This is a hardware limit, not a setting; see
-  [Step 0](#step-0--will-it-run-on-your-computer). Close other programs using the
+  [Step 0](#step-0-will-it-run-on-your-computer). Close other programs using the
   graphics card (browsers with hardware acceleration, games, video calls) and
   restart Ollama - that alone often frees enough.
 
 **"model requires more system memory than is available" / Ollama crashes on load**
 Not enough memory for the model. On a machine without a suitable graphics card
-the model needs **5,4 GB of RAM** on top of everything else you are running -
+the model needs **5.4 GB of RAM** on top of everything else you are running -
 16 GB total is the realistic floor. Close other programs and try again; if it
 still fails, this machine cannot run it. See
-[Step 0](#step-0--will-it-run-on-your-computer).
+[Step 0](#step-0-will-it-run-on-your-computer).
 
 **Answers are poor quality**
 Three things to check, in this order:
 
 1. Step 6 was applied **and Ollama restarted afterwards**.
-2. `ollama list` shows the IDs from [Step 3](#step-3--download-the-two-language-models).
+2. `ollama list` shows the IDs from [Step 3](#step-3-download-the-two-language-models).
    A different model is a different system.
 3. You did not edit `num_ctx` in the `Modelfile`s. 8192 is measured, not
    arbitrary - raising it costs VRAM and pushes the model onto the processor.
 
----
 
 ## Before you load real case files
 
-> ## ⚠️ What this guide installs is the **development profile**
+> ## What this guide installs is the **development profile**
 >
 > Everything above builds the system on **Q4_K_M quantisation with 8 GB of
 > VRAM**. That is the configuration every published measurement was taken on -
@@ -512,8 +508,8 @@ Three things to check, in this order:
 > all, both get worse. The measured 82% correct refusal already reflects that.
 >
 > Sources, so you can check rather than take our word:
-> [`docs/06-stos-ai.md`](docs/06-stos-ai.md) (profile table),
-> [`docs/09-compliance/rodo-dpia.md`](docs/09-compliance/rodo-dpia.md) (point 106),
+> [`docs/ai-stack.md`](docs/ai-stack.md) (profile table),
+> [`docs/compliance/gdpr-dpia.md`](docs/compliance/gdpr-dpia.md) (point 106),
 > [`SECURITY.md`](SECURITY.md) (known limitations).
 >
 > **This is not a reason to avoid the system.** It is a reason to know which
@@ -543,9 +539,8 @@ and no software will do them for you:**
 - [ ] **Train everyone who will use it** - AI Act art. 4 requires it, and it is
       an obligation, not a recommendation.
 
-Details in [`docs/09-compliance/`](docs/09-compliance/) (Polish).
+Details in [`docs/compliance/`](docs/compliance/) (Polish).
 
----
 
 ## Removing it
 
@@ -558,7 +553,6 @@ ollama rm bielik-lex-map llama-lex-map
 Your case files live in `panel/dane/` inside the project folder. **Deleting the
 folder deletes the case files** - take a backup first if you need them.
 
----
 
 *If this saved you time, please consider
 [the Wrocław shelter](https://www.ratujemyzwierzaki.pl/schroniskowroclaw). 🐕*

@@ -103,7 +103,7 @@ def test_i5_kanarek_dns(docker):
     """
     pytest.skip(
         "Wymaga sinkhole'a DNS — konfiguracja w infra/policies/sinkhole.md. "
-        "Bramka obowiązkowa przed produkcją (patrz docs/11-testy-i-bramki.md)."
+        "Bramka obowiązkowa przed produkcją (patrz docs/testing-and-gates.md)."
     )
 
 
@@ -146,7 +146,7 @@ def test_o1_przechwycenie_ruchu(docker, siec):
     ⚠️ CO TA BRAMKA OBEJMUJE, A CZEGO NIE — STAN NA 16.08.2026.
 
     Do tego dnia test miał w ciele BEZWARUNKOWY `pytest.skip` i nie
-    został wykonany ani razu, mimo że `docs/09-compliance/rodo-dpia.md`
+    został wykonany ani razu, mimo że `docs/compliance/gdpr-dpia.md`
     opisuje go jako warunek dopuszczenia do rzeczywistych akt.
 
     Obejmuje: trzy segmenty `internal: true` i realne próby wyjścia

@@ -1,128 +1,78 @@
-# Plan rozbudowy benchmarku / Benchmark roadmap
+# Benchmark roadmap
 
-Stan: **wymiary 1–4 działają**, 5–12 zaplanowane.
-Status: **dimensions 1–4 implemented**, 5–12 planned.
+Status: **dimensions 1 to 4 implemented**, 5 to 12 planned.
 
-Każdy wymiar ma podaną miarę, sposób wyznaczenia prawdy wzorcowej i to,
-co konkretnie psuje się, gdy wymiaru się nie mierzy.
+Each dimension states its measure, how the ground truth is established, and what specifically breaks when the dimension goes unmeasured.
 
----
+## Implemented
 
-## Działa / Implemented
-
-| # | Wymiar | Miara | Prawda wzorcowa |
+| # | Dimension | Measure | Ground truth |
 |---|---|---|---|
-| 1 | **Wierność cytatu** | trafność zakotwiczona, pokrycie wzorca | zakres znaków w źródle |
-| 2 | **Odmowa przy braku pokrycia** | J-3 | bliźniak sprawdzony wyszukiwaniem |
-| 3 | **Rozróżnialność par** | miara naczelna | para dopasowana |
-| 4 | **Szczelność między sprawami** | próg zerowy | kotwica obecna w A, nieobecna w B |
+| 1 | **Citation fidelity** | anchored accuracy, coverage of the reference | a character range in the source |
+| 2 | **Refusal where there is no coverage** | J-3 | a twin verified by search |
+| 3 | **Pair discriminability** | the headline measure | a matched pair |
+| 4 | **Cross-case leakage** | zero threshold | anchor present in A, absent from B |
 
----
+## Planned
 
-## Zaplanowane / Planned
+### 5. The degradation curve under OCR noise
 
-### 5. Krzywa degradacji przy szumie OCR
+The `szum.py` module is ready; what is missing is wiring it into the run.
 
-Moduł `szum.py` jest gotowy — brakuje spięcia z przebiegiem.
+The same set of pairs, with the source degraded at character error rates of **0, 1, 3, 5 and 10%**, using realistic error classes: lost diacritics, merged glyphs, digits confused with letters. The result is a curve rather than a point.
 
-Ten sam zbiór par, źródło zaszumione na poziomach CER **0 · 1 · 3 · 5 · 10%**,
-realistycznymi klasami pomyłek (utrata ogonków, zlewanie glifów, mylenie
-cyfr z literami). Wynikiem jest krzywa, nie punkt.
+**Why:** gates N-14 and N-15 set thresholds on the character error rate, but a threshold says nothing about how much quality the system loses. A firm buying a scanner needs to know whether the difference between 2% and 5% costs 3 points of accuracy or 40.
 
-**Po co:** bramki N-14 i N-15 stawiają progi CER, ale próg CER nie mówi,
-ile jakości traci system. Kancelaria kupująca skaner musi wiedzieć, czy
-różnica 2% a 5% CER kosztuje 3% czy 40% trafności.
+**The "digits" class is reported separately:** in a procedural document `II K 147/26` and `II K l47/26` are two different cases, and `14 dni` against `l4 dni` is the difference between a deadline met and a deadline lost. A digit error changes meaning rather than spelling, so averaging it with the rest hides what matters most.
 
-**Osobno raportowana klasa „cyfrowe":** w piśmie procesowym `II K 147/26`
-i `II K l47/26` to dwie różne sprawy, a `14 dni` i `l4 dni` to różnica
-między zachowanym a utraconym terminem. Pomyłka cyfrowa zmienia sens,
-nie pisownię, więc uśrednianie jej z resztą zaciera to, co najważniejsze.
+### 6. Needle in a haystack: position and corpus size
 
-### 6. Igła w stogu siana — pozycja i rozmiar korpusu
+The same fact asked against corpora of 10, 50, 100 and 320 documents. The measure: whether the source document reaches the twelve selected by BM25 (`recall@12`), broken down by document position and by the depth of the fact.
 
-Ten sam fakt zadawany przy korpusie 10 · 50 · 100 · 320 dokumentów.
-Miara: czy dokument źródłowy trafia do dwunastki wybranej przez BM25
-(`recall@12`), rozbite według pozycji dokumentu i głębokości faktu.
+**Why:** `MAKS_DOKUMENTOW_DO_ANALIZY = 12` is a hard cut-off. We do not know how many findings are lost because a document did not reach the twelve, and that loss is invisible to the user: the system does not say "I did not read it", it says "I did not find it".
 
-**Po co:** `MAKS_DOKUMENTOW_DO_ANALIZY = 12` jest twardym odcięciem.
-Nie wiemy, ile ustaleń przepada, bo dokument nie wszedł do dwunastki —
-a to jest strata niewidoczna dla użytkownika: system nie mówi „nie
-przeczytałem", tylko „nie znalazłem".
+### 7. Determinism
 
-### 7. Determinizm
+The same case run N times at `temperature=0.1` with a fixed seed. Measures: spread in the number of findings, stability of the citation range, and the share of cases producing an identical result.
 
-Ten sam przypadek N razy przy `temperature=0.1` i ustalonym `seed`.
-Miary: rozrzut liczby ustaleń, stabilność zakresu cytatu, udział
-przypadków dających identyczny wynik.
+**Why:** a result that cannot be reproduced is no use as evidence of due diligence (T-4). A lawyer who asks the same question twice and gets two different answers stops trusting both.
 
-**Po co:** wynik niepowtarzalny nie nadaje się na dowód należytej
-staranności (T-4). Prawnik, który dwa razy zada to samo pytanie
-i dostanie dwie różne odpowiedzi, przestanie ufać obu.
+### 8. Full language parity
 
-### 8. Parytet językowy — pełny
+Partly working already (the report breaks results down by Polish and English). To be added: the same **translated** questions over a bilingual pair of documents, so that corpus difficulty can be separated from model capability.
 
-Częściowo działa (rozbicie PL/EN w raporcie). Do dołożenia: te same
-**przetłumaczone** pytania na dwujęzycznej parze dokumentów, żeby
-oddzielić trudność korpusu od zdolności modelu.
+**Why:** the language divergence here is measured rather than hypothetical. The Polish model paraphrased English case files and gave 9% accuracy against 82% on Polish ones.
 
-**Po co:** rozjazd językowy jest tu zjawiskiem zmierzonym, nie
-hipotetycznym — model polski na angielskich aktach parafrazował i dał
-9% trafności wobec 82% na polskich.
+### 9. Model matrix
 
-### 9. Macierz modeli
+The same set of cases across {bielik-lex-map, bielik-lex-dev, llama-lex-map, qwen2.5-7b} and {extracting template, answering template}.
 
-Ten sam zbiór przypadków × {bielik-lex-map, bielik-lex-dev, llama-lex-map,
-qwen2.5-7b} × {szablon wydobywający, odpowiadający}.
+**Why:** the ablation of 14.08.2026 showed that the fast track was running on the worst of four combinations, producing zero findings where every other combination gave 6 to 8. A mistake like that has no business surviving in the configuration for longer than one run.
 
-**Po co:** ablacja z 14.08.2026 pokazała, że tor szybki chodził na
-najgorszej z czterech kombinacji — zero ustaleń tam, gdzie każda inna
-dawała 6–8. Taka pomyłka nie ma prawa przeżyć w konfiguracji dłużej
-niż jeden przebieg.
+### 10. Resistance to injection, quantified
 
-### 10. Odporność na wstrzyknięcia — ilościowo
+`tests/injection/` checks the construction, namely that the agent has no network tools. What is missing is measurement: instructions injected into case content, in variants (overt, white font, PDF metadata, a layer beneath an image, impersonating a system message), in both languages.
 
-`tests/injection/` sprawdza konstrukcję (agent nie ma narzędzi sieciowych).
-Brakuje pomiaru: polecenia wstrzyknięte w treść akt, wariantowane
-(jawne, biała czcionka, metadane PDF, warstwa pod obrazem, podszycie
-pod komunikat systemowy), na obu językach.
+**Threshold 100%**, as in `docs/testing-and-gates.md`.
 
-**Próg 100%** — jak w `docs/11-testy-i-bramki.md`.
+### 11. The cost of context: how much markup consumes
 
-### 11. Koszt kontekstu — ile zjadają znaczniki
+Measured: **42.5% of the content of case 3 is HTML markup** (`<p>`, `<td colspan>`, `<span class="anon-block">`). Against a budget of 9,000 characters for mapping, that means around 3,800 characters of markup instead of case content.
 
-Zmierzone: **42,5% treści sprawy 3 to znaczniki HTML** (`<p>`, `<td colspan>`,
-`<span class="anon-block">`). Przy budżecie 9 000 znaków na mapowanie
-oznacza to ~3 800 znaków znaczników zamiast treści akt.
+To do: the same run over a raw corpus and a cleaned one, with the difference in accuracy expressed as a number.
 
-Do zrobienia: ten sam przebieg na korpusie surowym i oczyszczonym,
-różnica w trafności jako liczba.
+**Why:** this is a defect in the document upload path rather than in the model. The fix is cheap (cleaning on import), so it is worth knowing what it is worth.
 
-**Po co:** to jest wada ścieżki wgrywania dokumentu, a nie modelu.
-Naprawa jest tania (oczyszczenie przy imporcie), więc warto wiedzieć,
-ile jest warta.
+### 12. Regression between releases
 
-### 12. Regresja między wydaniami
+Comparing runs by case identifier: which specific cases stopped working after a change. Not the fall in the average, but the list of items.
 
-Porównanie przebiegów po identyfikatorach przypadków: które konkretnie
-przypadki przestały działać po zmianie. Nie sam spadek średniej —
-lista pozycji.
+**Why:** quality degradation is quiet, unlike a crash (`docs/testing-and-gates.md`). An average can stand still while the system breaks one category and improves another.
 
-**Po co:** degradacja jakości jest cicha, w przeciwieństwie do awarii
-(`docs/11-testy-i-bramki.md`). Średnia potrafi stać w miejscu, gdy
-system psuje jedną kategorię i poprawia drugą.
+## A note on method
 
----
+This benchmark measures **citation fidelity and refusal**. It does not measure substantive correctness. That is what the human-verified gold set is for (`eval/gold-set/`, gate J-2, threshold ≥ 85%).
 
-## Uwaga metodologiczna
+The separation is deliberate. Citation fidelity is a binary property, measurable mechanically across thousands of cases. Substantive correctness is a legal judgement and cannot be automated without an LLM judge, which this project deliberately rejects.
 
-Ten benchmark mierzy **wierność cytatu i odmowę** — nie mierzy poprawności
-merytorycznej. Do tego służy gold set weryfikowany przez człowieka
-(`eval/gold-set/`, bramka J-2, próg ≥ 85%).
-
-Rozdzielenie jest celowe. Wierność cytatu jest własnością binarną
-i mierzalną maszynowo na tysiącach przypadków. Poprawność merytoryczna
-jest oceną prawniczą i nie da się jej zautomatyzować bez sędziego LLM,
-którego ten projekt świadomie odrzuca.
-
-**Benchmark, który udaje, że mierzy jedno i drugie, mierzy naprawdę
-tylko to pierwsze — i myli użytkownika co do tego, czego dowiódł.**
+**A benchmark that pretends to measure both really measures only the first, and misleads the reader about what it has shown.**

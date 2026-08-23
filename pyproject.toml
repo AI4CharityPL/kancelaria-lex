@@ -73,7 +73,7 @@ Changelog = "https://github.com/AI4CharityPL/kancelaria-lex/blob/main/CHANGELOG.
 #  z tego samego powodu.
 #
 #  Dopisanie tu czegokolwiek wymaga świadomej decyzji i wpisu
-#  w docs/14-decyzje/. Bramka I-1 pilnuje, żeby nie wróciły SDK
+#  w docs/adr/. Bramka I-1 pilnuje, żeby nie wróciły SDK
 #  dostawców chmurowych.
 # ══════════════════════════════════════════════════════════════════════
 dependencies = []

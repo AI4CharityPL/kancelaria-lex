@@ -33,7 +33,7 @@ from korpus_wstrzykniec import PRZYPADKI  # noqa: E402
 #  GRUPA KONSTRUKCYJNA — to jest właściwa gwarancja
 # ═══════════════════════════════════════════════════════════════════
 
-# Katalog narzędzi agenta (docs/07-agenci.md, allowlista).
+# Katalog narzędzi agenta (docs/agents.md, allowlista).
 NARZEDZIA_AGENTA = {
     "szukaj_w_sprawie",
     "pobierz_fragment",
@@ -63,7 +63,7 @@ def test_agent_nie_ma_zadnego_narzedzia_sieciowego():
         f"╚══════════════════════════════════════════════════════════╝\n"
         f"  {podejrzane}\n\n"
         f"Wstrzyknięcie polecenia w pismo procesowe staje się wykonalne.\n"
-        f"Patrz docs/07-agenci.md, zasada 1.\n"
+        f"Patrz docs/agents.md, zasada 1.\n"
     )
 
 
@@ -83,7 +83,7 @@ def test_katalog_narzedzi_jest_zamknieta_allowlista():
         "oblicz_termin", "waliduj_sygnature",
     }, (
         "Katalog narzędzi się zmienił. Każde nowe narzędzie wymaga "
-        "przeglądu pod kątem zagrożenia I-1 i zasady 1 z docs/07-agenci.md."
+        "przeglądu pod kątem zagrożenia I-1 i zasady 1 z docs/agents.md."
     )
 
 
@@ -153,7 +153,7 @@ def test_kazdy_przypadek_ma_kryterium_zaliczenia(przypadek):
 
 
 def test_korpus_pokrywa_wszystkie_warianty():
-    """Bramka N-13 wymaga pokrycia wszystkich wariantów z docs/07-agenci.md."""
+    """Bramka N-13 wymaga pokrycia wszystkich wariantów z docs/agents.md."""
     warianty = {p.wariant for p in PRZYPADKI}
     wymagane = {
         "polecenie jawne",

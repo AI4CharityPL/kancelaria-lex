@@ -50,7 +50,7 @@ class Kolejka:
 
     Limit równoległości wynosi 1 — model na 8 GB VRAM i tak obsługuje
     jedno zapytanie naraz, a dwa równoległe wypchnęłyby warstwy na CPU
-    i spowolniły oba (patrz docs/12-sprzet-i-koszty.md).
+    i spowolniły oba (patrz docs/hardware-and-costs.md).
     """
 
     def __init__(self, maks_historii: int = 50):

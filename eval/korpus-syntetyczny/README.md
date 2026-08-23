@@ -1,38 +1,42 @@
-# Korpus syntetyczny
+# Synthetic corpus
 
-**Wszystkie dokumenty w tym katalogu są fikcyjne.** Osoby, sprawy, sygnatury i zdarzenia zostały wymyślone na potrzeby testów.
+**Every document in this directory is fictional.** The people, cases, references and events were invented for testing.
 
-## Dlaczego korpus syntetyczny
+## Why a synthetic corpus
 
-Prawnik nie omawia szczegółów sprawy z osobą postronną. Ta sama zasada dotyczy narzędzi: rzeczywiste akta nie trafiają do repozytorium, do środowiska testowego ani do kontekstu narzędzi zewnętrznych (wymaganie T-6 w [`../../docs/09-compliance/tajemnica-zawodowa.md`](../../docs/09-compliance/tajemnica-zawodowa.md)).
+A lawyer does not discuss the details of a case with an outsider. The same rule applies to tools: real case files do not go into the repository, into a test environment, or into the context of external tools (requirement T-6 in [`../../docs/compliance/legal-professional-privilege.md`](../../docs/compliance/legal-professional-privilege.md)).
 
-Korpus ma odtwarzać **strukturę i trudności** realnych dokumentów, nie realne dane.
+The corpus is meant to reproduce the **structure and the difficulties** of real documents, not real data.
 
-## Zasady tworzenia
+## Rules for building it
 
-| Zasada | Powód |
+| Rule | Reason |
 |---|---|
-| Nazwiska z listy fikcyjnej, nigdy z prawdziwych spraw | Oczywisty |
-| Sygnatury w prawidłowym formacie, ale nieistniejące numery | Testuje walidację wzorca |
-| Daty spójne wewnętrznie | Testuje silnik terminów |
-| **Celowe rozbieżności między dokumentami** | Testuje agenta A-5 |
-| **Celowe braki informacji** | Testuje odmowę odpowiedzi (bramka J-3) |
-| Skany o różnej jakości | Testuje CER (bramki J-5, J-6) |
-| Warianty z wstrzykniętym poleceniem | Osobno w [`../../tests/injection/`](../../tests/injection/) |
+| Names from a fictional list, never from real cases | Self-evident |
+| Case references in valid format but with non-existent numbers | Exercises pattern validation |
+| Dates internally consistent | Exercises the deadline engine |
+| **Deliberate discrepancies between documents** | Exercises agent A-5 |
+| **Deliberate gaps in the information** | Exercises refusal to answer (gate J-3) |
+| Scans of varying quality | Exercises the character error rate (gates J-5, J-6) |
+| Variants with an injected instruction | Kept separately in [`../../tests/injection/`](../../tests/injection/) |
 
-## Zawartość
+## Contents
 
-| Plik | Rodzaj | Testuje |
+| File | Kind | What it exercises |
 |---|---|---|
-| `01-protokol-przesluchania-kowalski.txt` | protokół przesłuchania świadka | ekstrakcja, cytowanie |
-| `02-protokol-przesluchania-nowak.txt` | protokół — **rozbieżny z 01** | agent rozbieżności A-5 |
-| `03-postanowienie-doreczenie.txt` | postanowienie z datą doręczenia | silnik terminów A-2 |
-| `04-akt-oskarzenia.txt` | akt oskarżenia | klasyfikacja, metadane |
+| `01-protokol-przesluchania-kowalski.txt` | record of a witness examination | extraction, citation |
+| `02-protokol-przesluchania-nowak.txt` | record, **inconsistent with 01** | the discrepancy agent A-5 |
+| `03-postanowienie-doreczenie.txt` | court order with a date of service | the deadline engine, A-2 |
+| `04-akt-oskarzenia.txt` | indictment | classification, metadata |
 
-Dokumenty są krótkie celowo — mają testować mechanikę, nie wydajność. Korpus wydajnościowy (setki stron) powstaje osobno w Fazie 7.
+The documents are deliberately short: they exercise the mechanics rather than performance. A performance corpus of hundreds of pages is built separately in Phase 7.
+
+The file names and the document text are Polish, because the corpus imitates Polish procedural documents. That is the material the system is built for.
 
 ## Gold set
 
-Pytania i zweryfikowane odpowiedzi: [`../gold-set/`](../gold-set/).
+Questions and verified answers live in `eval/gold-set/`, which is **not in this
+repository**: it needs a lawyer's time to build and today holds six questions,
+which is why measure J-2 is recorded as unmeasurable.
 
-⚠️ Odpowiedzi w gold secie są weryfikowane **przez człowieka**. Świadomie nie używamy modelu jako sędziego — sędzia oparty na LLM przepuszcza halucynacje (ADR-0006).
+Answers in the gold set are verified **by a human**. We deliberately do not use a model as a judge, because an LLM judge lets hallucinations through (ADR-0006).

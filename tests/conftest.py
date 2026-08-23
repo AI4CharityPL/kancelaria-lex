@@ -10,7 +10,7 @@ zbierania testów, czyli PO sparsowaniu wiersza poleceń.
 Skutek był taki, że `--dozwol-pominiecie` działało z poziomu kodu
 (`request.config.getoption`), ale próba podania go w wierszu poleceń
 kończyła się błędem „unrecognized arguments" — mimo że i
-`docs/11-testy-i-bramki.md`, i komunikat samej bramki instruowały
+`docs/testing-and-gates.md`, i komunikat samej bramki instruowały
 operatora, żeby go użył.
 
 Furtka bezpieczeństwa, z której nie da się skorzystać, jest gorsza

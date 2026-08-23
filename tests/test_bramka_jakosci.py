@@ -2,7 +2,7 @@
 
 PO CO TO ISTNIEJE
 
-Progi z docs/11-testy-i-bramki.md były dotąd wartościami w raporcie,
+Progi z docs/testing-and-gates.md były dotąd wartościami w raporcie,
 które ktoś musiał przeczytać i zinterpretować. W tej sesji regresja
 przeszła niezauważona przez trzy przebiegi, bo patrzyłem na złą
 kolumnę i porównywałem różne konfiguracje.
@@ -33,7 +33,7 @@ pytestmark = pytest.mark.jakosc
 KORZEN = Path(__file__).resolve().parents[1]
 WYNIKI = KORZEN / "eval" / "wyniki"
 
-# Progi z docs/11-testy-i-bramki.md
+# Progi z docs/testing-and-gates.md
 #
 # ════════════════════════════════════════════════════════════════════
 #  J-3: PRÓG REGRESYJNY ≠ CEL. ROZDZIELONE 16.08.2026.

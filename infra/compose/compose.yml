@@ -1,6 +1,6 @@
 # kancelaria-lex — topologia z segmentacją sieci
 #
-# Warstwa C izolacji (patrz docs/05-izolacja-i-siec.md).
+# Warstwa C izolacji (patrz docs/isolation-and-network.md).
 # Upstream OpenContracts NIE definiuje żadnych sieci — wszystko ląduje
 # na domyślnym mostku, który ma trasę do internetu (ustalenie U-4).
 # Ten plik pisze topologię od zera.

@@ -1,6 +1,6 @@
 """Agent panelu — odpowiedzi wyłącznie z dokumentów jednej sprawy.
 
-Trzy zasady z docs/07-agenci.md, tutaj w praktyce:
+Trzy zasady z docs/agents.md, tutaj w praktyce:
 
 1. BRAK NARZĘDZI SIECIOWYCH — ten moduł wykonuje dokładnie jedno
    połączenie: do lokalnej Ollamy pod przypiętym adresem. Agent nie

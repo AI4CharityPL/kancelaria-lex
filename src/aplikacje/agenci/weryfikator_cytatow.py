@@ -166,7 +166,7 @@ class WeryfikatorCytatow:
     dokumenty:
         Mapa {dokument_id: pełny tekst}. Wyłącznie dokumenty, do których
         użytkownik zadający pytanie ma dostęp — zawężenie do uprawnień
-        użytkownika, nie systemu (docs/07-agenci.md).
+        użytkownika, nie systemu (docs/agents.md).
     """
 
     def __init__(self, dokumenty: dict[str, str]):
@@ -224,14 +224,14 @@ class WeryfikatorCytatow:
         """Zwraca (twierdzenia potwierdzone, wszystkie wyniki).
 
         Odrzucone twierdzenia trafiają do logu audytowego jako miara
-        jakości modelu w czasie (docs/07-agenci.md).
+        jakości modelu w czasie (docs/agents.md).
         """
         wyniki = [self.sprawdz_twierdzenie(t) for t in twierdzenia]
         return [w.twierdzenie for w in wyniki if w.przeszlo], wyniki
 
 
 def trafnosc_cytatow(wyniki: list[WynikWeryfikacji]) -> float:
-    """Metryka J-1 — próg ≥ 99% (docs/11-testy-i-bramki.md)."""
+    """Metryka J-1 — próg ≥ 99% (docs/testing-and-gates.md)."""
     if not wyniki:
         return 1.0
     return sum(w.przeszlo for w in wyniki) / len(wyniki)

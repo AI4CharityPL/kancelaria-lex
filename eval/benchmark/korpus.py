@@ -9,7 +9,7 @@ mierzyłby coś innego niż to, co widzi system.
    Sprawy 3 i 4 to publiczne orzeczenia SAOS i jawne akta federalne
    USA — nadają się do pomiaru i nie są aktami klienta.
    Rzeczywiste akta nie wchodzą do żadnego przebiegu ewaluacyjnego
-   (docs/09-compliance/tajemnica-zawodowa.md).
+   (docs/compliance/legal-professional-privilege.md).
 """
 
 from __future__ import annotations

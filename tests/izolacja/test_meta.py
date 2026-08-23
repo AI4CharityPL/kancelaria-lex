@@ -1,6 +1,6 @@
 """Test negatywny — czy bramki izolacji POTRAFIĄ PAŚĆ.
 
-Uzasadnienie (docs/11-testy-i-bramki.md):
+Uzasadnienie (docs/testing-and-gates.md):
 test bezpieczeństwa, który przechodzi zawsze, jest gorszy niż brak
 testu — daje fałszywą pewność. To najczęstszy sposób, w jaki tego
 rodzaju zabezpieczenia cicho przestają działać.
