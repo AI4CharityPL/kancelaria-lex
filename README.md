@@ -249,6 +249,11 @@ The only current version lives at
 A copy received any other way, by email, on a drive or from an intermediary, is
 not official, and you cannot know what was changed in it.
 
+## Author
+
+Built by **Krzysztof Augiewicz** - sole author of the system, its measurement
+harness and its compliance documentation. Details in [AUTHORS.md](AUTHORS.md).
+
 ## Licence and liability
 
 MIT; see [LICENSE](LICENSE). Use it, sell services around it, fork it.
