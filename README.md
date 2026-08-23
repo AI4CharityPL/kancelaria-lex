@@ -1,4 +1,4 @@
-.# Before anything else: please help an animal shelter in Wrocław 🐕
+# Before anything else: please help an animal shelter in Wrocław 🐕
 
 **This software is free. If it saves you time or money, please consider giving
 that value to animals in Polish shelter.**
